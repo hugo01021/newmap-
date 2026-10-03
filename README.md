@@ -37,9 +37,9 @@ L'état du parcours est conservé dans `localStorage` (`src/lib/wizard-store.tsx
 Deux types d'images dans `public/images/` :
 
 - des **photos** (`.jpg`) pour le monde du jeu : accueil, ville, police, métiers, gangs, immobilier, braquages, image finale, communauté, à propos ;
-- des **illustrations vectorielles** (`.svg`) générées par `scripts/images.mjs` pour les écrans du produit : panel, Discord, serveur, économie, site web, IA, sauvegardes, réparation.
+- des **écrans du produit** (`.jpg`) rendus par `scripts/screens.mjs` : panel, Discord, serveur, économie, site web, IA, sauvegardes, réparation. Ce sont des compositions HTML (police et composants du site) capturées dans Chromium ; pour les régénérer, lance `npm run build` puis `node scripts/screens.mjs` avec Playwright installé (`npm i -D playwright`).
 
-Le fichier `src/lib/data/images.ts` liste chaque emplacement avec son chemin, son texte alternatif et, si besoin, son point de cadrage. Pour changer une image, remplace le fichier en gardant son nom ou modifie le chemin dans ce fichier. `node scripts/images.mjs` régénère les illustrations (il ne touche pas aux emplacements qui ont une photo).
+Le fichier `src/lib/data/images.ts` liste chaque emplacement avec son chemin, son texte alternatif et, si besoin, son point de cadrage. Pour changer une image, remplace le fichier en gardant son nom ou modifie le chemin dans ce fichier.
 
 ## Où brancher le réel
 
