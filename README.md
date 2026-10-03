@@ -25,7 +25,7 @@ Stack : Next.js (App Router), TypeScript, Tailwind CSS v4, Framer Motion. Police
 | 3 | `/creer/recap` | Fiche du serveur générée par l'IA, chaque élément modifiable |
 | 4 | `/creer/offre` | Offre → compte (e-mail ou Discord) → paiement |
 | 5 | `/creer/construction` | Construction en direct (~20 s simulées) |
-| 6 | `/creer/pret` | Adresse de connexion, invitation Discord, panel |
+| 6 | `/creer/mise-en-ligne` | Formation en trois parties : clé de serveur, Discord, connexion au jeu (l'ancienne adresse `/creer/pret` y redirige) |
 | 7 | `/panel` | Panel de gestion avec l'IA au centre |
 
 Pages secondaires : `/tarifs`, `/communaute`, `/a-propos`, `/connexion`, `/fonctionnalites`, `/fonctionnalites/[slug]`, `/legal/[slug]`, 404.

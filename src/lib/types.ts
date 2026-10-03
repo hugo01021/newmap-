@@ -30,6 +30,16 @@ export interface Account {
   displayName: string;
 }
 
+/** Les trois étapes que le client doit faire lui-même après la construction. */
+export interface Onboarding {
+  /** Clé de serveur Cfx.re collée par le client. */
+  cfxKey: string;
+  cfxDone: boolean;
+  discordCreated: boolean;
+  discordBuilt: boolean;
+  playDone: boolean;
+}
+
 export interface WizardState {
   prompt: string;
   answers: WizardAnswers;
@@ -40,9 +50,12 @@ export interface WizardState {
   built: boolean;
   server: {
     address: string;
+    /** Adresse IP de la machine, à renseigner lors de la création de la clé. */
+    ip: string;
     discordInvite: string;
     siteUrl: string;
   } | null;
+  onboarding: Onboarding;
 }
 
 /** Une proposition de changement renvoyée par l'IA de gestion. */

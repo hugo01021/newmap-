@@ -14,8 +14,8 @@ export function Intro() {
           <Reveal delay={0.1}>
             <p className="mt-7 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
               Tu racontes la ville que tu imagines : son ambiance, ses métiers, ses gangs, son économie. ServCraft construit
-              tout, met ton serveur en ligne, génère ton Discord et ton site, puis te donne un panel pour tout gérer en parlant.
-              Pas de jargon, pas d&apos;hébergeur à configurer, pas de nuit blanche.
+              tout, met ton serveur en ligne, le protège contre les attaques, génère ton Discord et ton site, puis te donne un
+              panel pour tout gérer en parlant. Pas de jargon, pas d&apos;hébergeur à configurer, pas de nuit blanche.
             </p>
           </Reveal>
         </div>

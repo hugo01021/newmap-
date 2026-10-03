@@ -24,6 +24,10 @@ export const faq = [
     a: "ServCraft surveille ton serveur en continu. Si une erreur apparaît, elle est réparée automatiquement et tu reçois un compte-rendu. Tes sauvegardes sont toujours disponibles.",
   },
   {
+    q: "Et si mon serveur est attaqué ?",
+    a: "C'est notre priorité numéro un. Les attaques sont filtrées automatiquement, ton serveur est conçu pour rester en ligne pendant l'attaque, et tu reçois une alerte puis un rapport sur ton Discord. Tu n'as rien à faire. C'est inclus dans toutes les offres.",
+  },
+  {
     q: "Puis-je résilier quand je veux ?",
     a: "Oui. Il n'y a ni frais de mise en place ni engagement : l'abonnement se résilie en un clic depuis le panel et s'arrête à la fin du mois en cours.",
   },

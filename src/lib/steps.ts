@@ -12,7 +12,7 @@ export const steps: Step[] = [
   { index: 3, path: "/creer/recap", label: "Récapitulatif", short: "Récap" },
   { index: 4, path: "/creer/offre", label: "Offre et compte", short: "Offre" },
   { index: 5, path: "/creer/construction", label: "Construction", short: "Construction" },
-  { index: 6, path: "/creer/pret", label: "Serveur prêt", short: "Prêt" },
+  { index: 6, path: "/creer/mise-en-ligne", label: "Mise en ligne", short: "En ligne" },
   { index: 7, path: "/panel", label: "Panel de gestion", short: "Panel" },
 ];
 

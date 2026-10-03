@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
-import type { Account, PlanId, ServerSpec, WizardAnswers, WizardState } from "./types";
+import type { Account, Onboarding, PlanId, ServerSpec, WizardAnswers, WizardState } from "./types";
 
 const STORAGE_KEY = "servcraft:wizard:v1";
 
@@ -14,6 +14,7 @@ export const initialState: WizardState = {
   paid: false,
   built: false,
   server: null,
+  onboarding: { cfxKey: "", cfxDone: false, discordCreated: false, discordBuilt: false, playDone: false },
 };
 
 type Action =
@@ -26,13 +27,15 @@ type Action =
   | { type: "setAccount"; account: Account | null }
   | { type: "setPaid"; paid: boolean }
   | { type: "setServer"; server: WizardState["server"] }
+  | { type: "setOnboarding"; patch: Partial<Onboarding> }
   | { type: "newServer" }
   | { type: "reset" };
 
 function reducer(state: WizardState, action: Action): WizardState {
   switch (action.type) {
     case "hydrate":
-      return { ...initialState, ...action.state };
+      // Les parcours sauvegardés avant l'ajout d'un champ gardent des valeurs par défaut.
+      return { ...initialState, ...action.state, onboarding: { ...initialState.onboarding, ...(action.state.onboarding ?? {}) } };
     case "setPrompt":
       // Un nouveau prompt invalide la fiche générée.
       return { ...state, prompt: action.prompt, spec: state.prompt === action.prompt ? state.spec : null };
@@ -50,6 +53,8 @@ function reducer(state: WizardState, action: Action): WizardState {
       return { ...state, paid: action.paid };
     case "setServer":
       return { ...state, server: action.server, built: Boolean(action.server) };
+    case "setOnboarding":
+      return { ...state, onboarding: { ...state.onboarding, ...action.patch } };
     case "newServer":
       // Nouveau parcours : on garde uniquement le compte.
       return { ...initialState, account: state.account };
@@ -71,6 +76,7 @@ interface WizardContextValue {
   setAccount: (account: Account | null) => void;
   setPaid: (paid: boolean) => void;
   setServer: (server: WizardState["server"]) => void;
+  setOnboarding: (patch: Partial<Onboarding>) => void;
   newServer: () => void;
   reset: () => void;
 }
@@ -109,12 +115,13 @@ export function WizardProvider({ children }: { children: ReactNode }) {
   const setAccount = useCallback((account: Account | null) => dispatch({ type: "setAccount", account }), []);
   const setPaid = useCallback((paid: boolean) => dispatch({ type: "setPaid", paid }), []);
   const setServer = useCallback((server: WizardState["server"]) => dispatch({ type: "setServer", server }), []);
+  const setOnboarding = useCallback((patch: Partial<Onboarding>) => dispatch({ type: "setOnboarding", patch }), []);
   const newServer = useCallback(() => dispatch({ type: "newServer" }), []);
   const reset = useCallback(() => dispatch({ type: "reset" }), []);
 
   const value = useMemo<WizardContextValue>(
-    () => ({ state, hydrated, setPrompt, answer, setSpec, patchSpec, setPlan, setAccount, setPaid, setServer, newServer, reset }),
-    [state, hydrated, setPrompt, answer, setSpec, patchSpec, setPlan, setAccount, setPaid, setServer, newServer, reset],
+    () => ({ state, hydrated, setPrompt, answer, setSpec, patchSpec, setPlan, setAccount, setPaid, setServer, setOnboarding, newServer, reset }),
+    [state, hydrated, setPrompt, answer, setSpec, patchSpec, setPlan, setAccount, setPaid, setServer, setOnboarding, newServer, reset],
   );
 
   return <WizardContext.Provider value={value}>{children}</WizardContext.Provider>;

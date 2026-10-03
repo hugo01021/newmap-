@@ -32,6 +32,7 @@ export const plans: Plan[] = [
     tagline: "Pour lancer une première communauté, sans risque.",
     features: [
       "Serveur jusqu'à 32 joueurs",
+      "Protection anti-attaques incluse",
       "Création complète par IA",
       "Panel et IA de gestion",
       "Discord automatique",

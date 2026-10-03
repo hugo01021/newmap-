@@ -348,6 +348,37 @@ scenes["inclus-reparation"] = {
   },
 };
 
+scenes["inclus-protection"] = {
+  w: 1600, h: 1000,
+  html() {
+    const css = base(1600, 1000, "rgba(220,70,70,.22)", "40%", "40%");
+    // Trafic : légitime (blanc) et attaque filtrée (gris)
+    const legit = [20, 22, 21, 24, 23, 25, 26, 24, 25, 27, 26, 28, 27, 26, 28, 29, 28, 27];
+    const attack = [0, 0, 0, 0, 0, 0, 2, 38, 42, 40, 35, 12, 3, 0, 0, 0, 0, 0];
+    const chart = (w, h, data, color, fill) => {
+      const max = 45, pad = 8;
+      const pts = data.map((v, i) => [pad + (i / (data.length - 1)) * (w - pad * 2), h - pad - (v / max) * (h - pad * 2)]);
+      let d = `M${pts[0][0]},${pts[0][1]}`;
+      for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; const cx = (x0 + x1) / 2; d += ` C${cx},${y0} ${cx},${y1} ${x1},${y1}`; }
+      return `<path d="${d} L${pts[pts.length - 1][0]},${h} L${pts[0][0]},${h} Z" fill="${fill}"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    };
+    const body = `<div class="bg"></div><div class="grid"></div>
+<div style="position:absolute;left:150px;top:310px;width:280px;height:340px;color:#fff;filter:drop-shadow(0 0 60px rgba(255,120,120,.35))">${icon.shield.replace('stroke-width="1.5"', 'stroke-width="1.1"')}</div>
+<div style="position:absolute;left:242px;top:424px;width:96px;height:96px;color:#fff">${icon.check.replace('stroke-width="2.4"', 'stroke-width="2.6"')}</div>
+<div class="card" style="left:500px;top:90px;width:940px;height:820px;padding:36px 40px">
+  <div class="row"><span class="label">Protection anti-attaques</span><span class="tag">Active</span></div>
+  <div class="num" style="font-size:42px;margin-top:22px">Attaque bloquée en 2 secondes.</div>
+  <div class="muted" style="margin-top:8px;font-size:15px">Aujourd'hui, 02:14 · 42 Gbit/s filtrés · 0 joueur déconnecté · rapport envoyé sur Discord</div>
+  <div class="row" style="margin-top:28px"><span class="label">Trafic · dernière heure</span><div style="display:flex;gap:18px;font-size:12px" class="muted"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fff;margin-right:6px"></span>Joueurs</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#6a6a72;margin-right:6px"></span>Attaque filtrée</span></div></div>
+  <svg width="860" height="250" viewBox="0 0 860 250" style="display:block;margin-top:12px">${[0.25, 0.5, 0.75].map((t) => `<line x1="0" y1="${250 * t}" x2="860" y2="${250 * t}" stroke="rgba(255,255,255,.07)"/>`).join("")}${chart(860, 250, attack, "#6a6a72", "rgba(120,120,130,.18)")}${chart(860, 250, legit, "#fff", "rgba(255,255,255,.12)")}</svg>
+  <div style="margin-top:26px">${tiles([["Attaques bloquées ce mois", "12", "Toutes sans coupure"], ["Disponibilité", "100 %", "30 derniers jours"], ["Temps de réaction", "1,8 s", "Moyenne du mois"]], 3)}</div>
+  <div class="hr" style="margin:26px 0 18px"></div>
+  <div style="display:flex;gap:26px;font-size:14px;color:#d4d4d4">${["Filtrage automatique", "Alerte Discord en direct", "Rapport après chaque attaque"].map((t) => `<span style="display:flex;align-items:center;gap:8px"><span class="ic" style="color:#8a8a8a">${icon.check}</span>${t}</span>`).join("")}</div>
+</div>`;
+    return page(1600, 1000, css, body);
+  },
+};
+
 scenes["showcase-panel"] = {
   w: 1200, h: 1500,
   html() {

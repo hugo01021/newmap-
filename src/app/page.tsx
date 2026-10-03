@@ -6,6 +6,7 @@ import { Intro } from "@/components/home/Intro";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { LiveDemo } from "@/components/home/LiveDemo";
 import { Included } from "@/components/home/Included";
+import { Protection } from "@/components/home/Protection";
 import { AiManager } from "@/components/home/AiManager";
 import { Pricing } from "@/components/home/Pricing";
 import { Faq } from "@/components/home/Faq";
@@ -20,6 +21,7 @@ export default function HomePage() {
         <HowItWorks />
         <LiveDemo />
         <Included />
+        <Protection />
         <AiManager />
         <Pricing />
         <Faq />

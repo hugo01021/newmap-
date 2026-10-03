@@ -21,7 +21,7 @@ export function WizardShell({ children, locked }: WizardShellProps) {
   const index = current?.index ?? 1;
   const total = steps.length;
   // Pas de retour possible une fois le serveur construit.
-  const canGoBack = index > 1 && current?.path !== "/creer/pret";
+  const canGoBack = index > 1 && current?.path !== "/creer/mise-en-ligne";
   const previous = canGoBack ? steps[index - 2] : null;
 
   return (

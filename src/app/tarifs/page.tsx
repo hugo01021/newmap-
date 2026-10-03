@@ -30,8 +30,8 @@ export default function TarifsPage() {
           </Reveal>
           <div className="mt-12 grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
             {[
-              ["Création par IA", "Ta description devient un serveur complet, cohérent et jouable."],
-              ["Hébergement inclus", "Serveur en ligne, surveillé et mis à jour pour toi."],
+              ["Création et hébergement", "Ta description devient un serveur complet, en ligne, surveillé et mis à jour pour toi."],
+              ["Protection anti-attaques", "Notre priorité numéro un : attaques filtrées, serveur maintenu en ligne, alerte sur Discord."],
               ["Panel de gestion", "Tu modifies tout en parlant à l'IA, sans jargon."],
               ["Sauvegardes", "Tes données sont sauvegardées et restaurables en un clic."],
             ].map(([t, d], i) => (

@@ -5,6 +5,7 @@ import type { ImageKey } from "@/lib/data/images";
 
 const included: Array<{ image: ImageKey; label: string; title: string; href: string }> = [
   { image: "featureServer", label: "Infrastructure", title: "Serveur de jeu", href: "/fonctionnalites/serveur-de-jeu" },
+  { image: "includedProtection", label: "Priorité numéro un", title: "Protection anti-attaques", href: "/fonctionnalites/protection-anti-attaques" },
   { image: "featureJobs", label: "Gameplay", title: "Jobs : police, EMS, mécano", href: "/fonctionnalites/jobs-et-factions" },
   { image: "featureEconomy", label: "Gameplay", title: "Économie", href: "/fonctionnalites/economie" },
   { image: "includedGangs", label: "Gameplay", title: "Gangs", href: "/fonctionnalites/jobs-et-factions" },

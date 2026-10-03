@@ -28,6 +28,7 @@ export const images = {
   includedHeists: { src: "/images/inclus-braquages.jpg", alt: "Façade d'une banque historique", position: "50% 75%" },
   includedBackups: { src: "/images/inclus-sauvegardes.jpg", alt: "Sauvegardes" },
   includedRepair: { src: "/images/inclus-reparation.jpg", alt: "Réparation automatique" },
+  includedProtection: { src: "/images/inclus-protection.jpg", alt: "Attaque bloquée automatiquement, serveur resté en ligne" },
   finalCta: { src: "/images/final-noir-et-blanc.jpg", alt: "Route de nuit, traînées de phares" },
   about: { src: "/images/a-propos.jpg", alt: "Bureau de nuit éclairé en rouge, écran et ordinateur portable", position: "50% 62%" },
   community: { src: "/images/communaute.jpg", alt: "Foule sous des lasers verts pendant un concert" },

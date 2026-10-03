@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/cn";
-import { features } from "@/lib/data/features";
+import { menuFeatures as features } from "@/lib/data/features";
 import { Logo } from "./Logo";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { ChevronDown, Globe, Menu, X } from "@/components/ui/Icons";

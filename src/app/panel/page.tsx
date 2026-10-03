@@ -20,6 +20,8 @@ export default function PanelPage() {
 
   const spec = state.spec && state.built ? state.spec : demoSpec;
   const isDemo = !(state.spec && state.built);
+  const ob = state.onboarding;
+  const remaining = isDemo ? 0 : 3 - [ob.cfxDone, ob.discordBuilt, ob.playDone].filter(Boolean).length;
   const discordMembers = useMemo(() => 180 + (spec.name.length % 7) * 23, [spec.name]);
 
   // Petites variations de joueurs connectés pour donner vie à l'en-tête.
@@ -49,6 +51,11 @@ export default function PanelPage() {
           </div>
           <div className="flex items-center gap-4 text-sm">
             {isDemo && <span className="label hidden text-muted md:inline">Mode démonstration</span>}
+            {!isDemo && (
+              <Link href="/creer/mise-en-ligne" className="label text-white/80 transition-opacity hover:opacity-60">
+                Guide
+              </Link>
+            )}
             <Link href="/" className="label text-white/80 transition-opacity hover:opacity-60">
               Accueil
             </Link>
@@ -109,6 +116,19 @@ export default function PanelPage() {
         </nav>
       </header>
 
+      {remaining > 0 && (
+        <div className="container-x pt-6">
+          <div className="flex flex-col gap-3 rounded-card border border-white/30 bg-ink-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm">
+              <span className="font-semibold">Il te reste {remaining} étape{remaining > 1 ? "s" : ""}</span>
+              <span className="text-muted"> pour mettre ton serveur en ligne : clé de serveur, Discord, connexion au jeu.</span>
+            </p>
+            <Link href="/creer/mise-en-ligne" className="label whitespace-nowrap underline underline-offset-4">
+              Reprendre le guide
+            </Link>
+          </div>
+        </div>
+      )}
       <main className="container-x grid gap-6 py-8 lg:grid-cols-12">
         <div className="lg:col-span-7 xl:col-span-8">
           <PanelTabContent key={tab} tab={tab} spec={spec} history={history} online={online} discordMembers={discordMembers} onLog={log} />

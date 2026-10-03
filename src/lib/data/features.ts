@@ -7,6 +7,8 @@ export interface Feature {
   intro: string;
   points: string[];
   image: ImageKey;
+  /** false : absente du méga-menu (grille de six), mais présente partout ailleurs. */
+  menu?: boolean;
 }
 
 export const features: Feature[] = [
@@ -94,9 +96,26 @@ export const features: Feature[] = [
     ],
     image: "featureAi",
   },
+  {
+    slug: "protection-anti-attaques",
+    label: "Priorité numéro un",
+    title: "Protection anti-attaques",
+    intro:
+      "Les attaques sont la première cause de disparition des serveurs RP : un serveur qui tombe un samedi soir perd ses joueurs. C'est pourquoi la protection est notre priorité numéro un, incluse dans toutes les offres.",
+    points: [
+      "Filtrage automatique des attaques, sans rien à faire de ta part",
+      "Surveillance 24h/24 et réaction en quelques secondes",
+      "Serveur conçu pour rester en ligne pendant l'attaque",
+      "Alerte et rapport envoyés sur ton Discord après chaque attaque",
+    ],
+    image: "includedProtection",
+    menu: false,
+  },
 ];
 
-export const megaMenuFeatures = features.map((f) => ({
+export const menuFeatures = features.filter((f) => f.menu !== false);
+
+export const megaMenuFeatures = menuFeatures.map((f) => ({
   ...f,
   imageSrc: images[f.image].src,
 }));

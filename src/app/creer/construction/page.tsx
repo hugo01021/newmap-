@@ -31,7 +31,7 @@ export default function ConstructionPage() {
     // La construction a déjà démarré (ou s'est terminée) sur cet écran : on ne relance rien.
     if (started.current) return;
     if (state.built && state.server) {
-      router.replace("/creer/pret");
+      router.replace("/creer/mise-en-ligne");
       return;
     }
     started.current = true;
@@ -53,7 +53,7 @@ export default function ConstructionPage() {
         setProgress(1);
         setDone(true);
         setServer(result);
-        c.timer = setTimeout(() => router.push("/creer/pret"), 1400);
+        c.timer = setTimeout(() => router.push("/creer/mise-en-ligne"), 1400);
       },
     );
   }, [hydrated, state.spec, state.paid, state.built, state.server, router, setServer]);
