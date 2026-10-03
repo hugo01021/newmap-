@@ -4,7 +4,7 @@
  * Remplace n'importe quel fichier par ta propre image en gardant le même nom.
  *   node scripts/images.mjs
  */
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 
 const out = new URL("../public/images/", import.meta.url);
 mkdirSync(out, { recursive: true });
@@ -751,6 +751,8 @@ scenes["communaute"] = () => {
 
 let count = 0;
 for (const [name, make] of Object.entries(scenes)) {
+  // Une photo (.jpg) du même nom a priorité : on ne régénère pas l'illustration.
+  if (existsSync(new URL(`${name}.jpg`, out))) continue;
   writeFileSync(new URL(`${name}.svg`, out), make());
   count += 1;
 }

@@ -34,7 +34,12 @@ L'état du parcours est conservé dans `localStorage` (`src/lib/wizard-store.tsx
 
 ## Images
 
-Les images de `public/images/` sont des illustrations vectorielles (SVG) générées par `scripts/images.mjs` : ville au coucher du soleil, voiture de police, baies de serveurs, Discord, panel, coffre de banque… Elles ne reprennent aucun visuel du jeu. Pour les remplacer par tes propres captures, garde le même nom de fichier ou change le chemin dans `src/lib/data/images.ts`. Pour les régénérer : `node scripts/images.mjs`.
+Deux types d'images dans `public/images/` :
+
+- des **photos** (`.jpg`) pour le monde du jeu : accueil, ville, police, métiers, gangs, immobilier, braquages, image finale, communauté, à propos ;
+- des **illustrations vectorielles** (`.svg`) générées par `scripts/images.mjs` pour les écrans du produit : panel, Discord, serveur, économie, site web, IA, sauvegardes, réparation.
+
+Le fichier `src/lib/data/images.ts` liste chaque emplacement avec son chemin, son texte alternatif et, si besoin, son point de cadrage. Pour changer une image, remplace le fichier en gardant son nom ou modifie le chemin dans ce fichier. `node scripts/images.mjs` régénère les illustrations (il ne touche pas aux emplacements qui ont une photo).
 
 ## Où brancher le réel
 

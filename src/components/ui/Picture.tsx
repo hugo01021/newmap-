@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { images, type ImageKey } from "@/lib/data/images";
+import { images, type ImageKey, type SiteImage } from "@/lib/data/images";
 
 interface PictureProps {
   image: ImageKey;
@@ -16,13 +16,13 @@ interface PictureProps {
  * Les sources viennent de lib/data/images.ts : remplace les fichiers, pas le code.
  */
 export function Picture({ image, className, imgClassName, priority, ratio, hover = true }: PictureProps) {
-  const { src, alt } = images[image];
+  const { src, alt, position } = images[image] as SiteImage;
   return (
     <div
       className={cn("group relative overflow-hidden rounded-card bg-ink-2", className)}
       style={ratio ? { aspectRatio: ratio } : undefined}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- illustrations SVG ; passe à next/image si tu les remplaces par des JPG */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- photos et illustrations servies telles quelles depuis /public */}
       <img
         src={src}
         alt={alt}
@@ -33,6 +33,7 @@ export function Picture({ image, className, imgClassName, priority, ratio, hover
           hover && "group-hover:scale-[1.04]",
           imgClassName,
         )}
+        style={position ? { objectPosition: position } : undefined}
       />
     </div>
   );
