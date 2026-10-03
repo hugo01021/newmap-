@@ -23,8 +23,8 @@ const pages: Record<string, { title: string; sections: Array<[string, string]> }
   cgv: {
     title: "Conditions générales de vente",
     sections: [
-      ["Offres", "ServCraft propose trois offres : Launch, Pro RP et Studio. Chacune comprend des frais de mise en place uniques et un abonnement mensuel."],
-      ["Paiement et résiliation", "Les frais de mise en place sont dus à la commande et ne sont pas remboursables une fois la construction lancée. L'abonnement mensuel est résiliable à tout moment depuis le panel ; il prend fin à l'échéance en cours."],
+      ["Offres", "ServCraft propose quatre offres selon le nombre de joueurs : 32, 64, 128 et 256. Chacune est un abonnement mensuel, sans frais de mise en place ni engagement de durée."],
+      ["Paiement et résiliation", "L'abonnement est prélevé chaque mois. Il est résiliable à tout moment depuis le panel ; il prend fin à l'échéance en cours, le mois entamé restant dû."],
       ["Disponibilité", "ServCraft s'engage à surveiller ton serveur en continu et à le remettre en ligne au plus vite en cas d'incident. Les sauvegardes sont conservées 30 jours."],
       ["Contenu", "Tu restes responsable du contenu de ton serveur et du respect des conditions d'utilisation des plateformes tierces."],
     ],

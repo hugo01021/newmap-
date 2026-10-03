@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/cn";
-import { formatEuro } from "@/lib/data/pricing";
+import { formatEuro, planForPlayers } from "@/lib/data/pricing";
 import type { ServerSpec } from "@/lib/types";
 import { labels } from "@/lib/wizard-store";
 import {
@@ -448,8 +448,8 @@ export function PanelTabContent({ tab, spec, history, online, discordMembers, on
               </Row>
             </Card>
             <Card title="Abonnement">
-              <p className="font-semibold">Offre Pro RP</p>
-              <p className="text-xs text-muted">Prochain prélèvement le 3 du mois · {formatEuro(149)}</p>
+              <p className="font-semibold">Offre {planForPlayers(spec.players).name}</p>
+              <p className="text-xs text-muted">Prochain prélèvement le 3 du mois · {formatEuro(planForPlayers(spec.players).monthly)}</p>
               <div className="mt-4 flex gap-2">
                 <PillButton size="sm" variant="secondary" href="/tarifs">
                   Changer d&apos;offre

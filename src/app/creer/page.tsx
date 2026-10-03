@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { examplePrompts } from "@/lib/data/prompts";
 import { useWizard } from "@/lib/wizard-store";
-import type { PlanId } from "@/lib/types";
+import { isPlanId } from "@/lib/data/pricing";
 import { StepHeading } from "@/components/wizard/StepHeading";
 import { PillButton } from "@/components/ui/PillButton";
 import { ArrowRight } from "@/components/ui/Icons";
@@ -25,7 +25,7 @@ function DescribeStep() {
   // Offre pré-sélectionnée depuis la section tarifs.
   useEffect(() => {
     const offre = params.get("offre");
-    if (offre === "launch" || offre === "pro" || offre === "studio") setPlan(offre as PlanId);
+    if (isPlanId(offre)) setPlan(offre);
   }, [params, setPlan]);
 
   useEffect(() => {

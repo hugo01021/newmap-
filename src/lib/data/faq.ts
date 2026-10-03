@@ -4,6 +4,10 @@ export const faq = [
     a: "Non. Tu décris ton serveur en français, l'IA le construit et le met en ligne. Ensuite, tu le gères en parlant à ton panel. Tu ne verras jamais une ligne de code.",
   },
   {
+    q: "Combien ça coûte ?",
+    a: "De 22 € par mois pour 32 joueurs à 110 € par mois pour 256 joueurs. Le prix comprend la machine, la création par IA, le Discord, le site web, le panel et les sauvegardes. Pas de frais de mise en place.",
+  },
+  {
     q: "Combien de temps faut-il pour avoir un serveur en ligne ?",
     a: "Environ une minute entre ta description et l'adresse de connexion. Les ajustements que tu demandes ensuite sont publiés en quelques secondes.",
   },
@@ -13,7 +17,7 @@ export const faq = [
   },
   {
     q: "Le Discord est vraiment créé automatiquement ?",
-    a: "Oui, avec l'offre Pro RP et Studio. Salons, rôles, règlement, candidatures whitelist : tout est généré et reste synchronisé avec ton serveur.",
+    a: "Oui, avec toutes les offres. Salons, rôles, règlement, candidatures whitelist : tout est généré et reste synchronisé avec ton serveur.",
   },
   {
     q: "Que se passe-t-il si quelque chose casse ?",
@@ -21,7 +25,7 @@ export const faq = [
   },
   {
     q: "Puis-je résilier quand je veux ?",
-    a: "Oui. L'abonnement mensuel se résilie en un clic depuis le panel. Les frais de mise en place couvrent la création de ton serveur et ne sont pas remboursables.",
+    a: "Oui. Il n'y a ni frais de mise en place ni engagement : l'abonnement se résilie en un clic depuis le panel et s'arrête à la fin du mois en cours.",
   },
   {
     q: "Puis-je récupérer mon serveur pour l'héberger ailleurs ?",

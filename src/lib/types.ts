@@ -1,7 +1,7 @@
 export type Seriousness = "casual" | "semi" | "hardcore";
 export type PlayerCount = 32 | 64 | 128 | 256;
 export type EconomyMode = "rapide" | "realiste" | "hardcore";
-export type PlanId = "launch" | "pro" | "studio";
+export type PlanId = "p32" | "p64" | "p128" | "p256";
 
 export interface WizardAnswers {
   seriousness?: Seriousness;

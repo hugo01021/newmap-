@@ -7,7 +7,7 @@ import { Tag } from "@/components/ui/Tag";
 
 export const metadata: Metadata = {
   title: "Tarifs",
-  description: "Des frais de mise en place pour créer ton serveur, puis un abonnement mensuel. Launch, Pro RP ou Studio.",
+  description: "Un abonnement mensuel selon le nombre de joueurs, à partir de 22 € par mois. Sans frais de mise en place, sans engagement.",
 };
 
 export default function TarifsPage() {
@@ -18,7 +18,7 @@ export default function TarifsPage() {
           <Tag>Tarifs</Tag>
           <h1 className="display mt-6 max-w-4xl text-5xl sm:text-7xl">Un prix clair. Un serveur complet.</h1>
           <p className="mt-6 max-w-xl text-lg text-muted">
-            Tu paies une fois la création de ton serveur, puis un abonnement mensuel pour l&apos;héberger, le surveiller et le faire évoluer avec l&apos;IA.
+            Un abonnement mensuel calculé sur le nombre de joueurs, à partir de 22 € par mois. Pas de frais de mise en place, pas d&apos;engagement. Tout est inclus.
           </p>
         </Reveal>
       </section>
@@ -26,7 +26,7 @@ export default function TarifsPage() {
       <section className="border-t border-line">
         <div className="container-x py-24 sm:py-32">
           <Reveal>
-            <h2 className="display text-4xl sm:text-5xl">Ce que les trois offres ont en commun.</h2>
+            <h2 className="display text-4xl sm:text-5xl">Ce que toutes les offres ont en commun.</h2>
           </Reveal>
           <div className="mt-12 grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
             {[

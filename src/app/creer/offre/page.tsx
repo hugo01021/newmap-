@@ -128,9 +128,9 @@ export default function OffrePage() {
         <AnimatePresence mode="wait">
           {phase === "plan" && (
             <motion.div key="plan" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.45, ease }}>
-              <div className="grid gap-4 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {plans.map((p) => (
-                  <PlanCard key={p.id} plan={p} selected={state.plan === p.id} onSelect={choosePlan} />
+                  <PlanCard key={p.id} plan={p} selected={state.plan === p.id} onSelect={choosePlan} badge={p.players === state.spec?.players ? "Recommandé" : undefined} />
                 ))}
               </div>
               {state.plan && (
@@ -225,7 +225,7 @@ export default function OffrePage() {
                     </label>
                   </div>
                   <PillButton type="submit" size="lg" className="mt-2 w-full" disabled={!cardReady || busy !== null} icon={busy === "pay" ? <Loader width={16} height={16} /> : undefined}>
-                    {busy === "pay" ? "Paiement en cours…" : `Payer ${formatEuro(plan.setup + plan.monthly)} et construire`}
+                    {busy === "pay" ? "Paiement en cours…" : `Payer ${formatEuro(plan.monthly)} et construire`}
                   </PillButton>
                 </form>
                 <p className="mt-4 text-center text-xs text-muted-2">Démonstration : aucun paiement réel n&apos;est effectué.</p>
@@ -234,24 +234,22 @@ export default function OffrePage() {
               <aside className="rounded-card border border-line bg-ink-2/40 p-6 sm:p-8 lg:col-span-2">
                 <span className="label text-muted">Récapitulatif</span>
                 <h3 className="mt-4 text-2xl font-bold tracking-tight">{state.spec.name}</h3>
-                <p className="mt-1 text-sm text-muted">
-                  Offre {plan.name} · {state.spec.players} joueurs
-                </p>
+                <p className="mt-1 text-sm text-muted">Offre {plan.name}</p>
                 <dl className="mt-6 space-y-3 border-t border-line pt-6 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-muted">Mise en place</dt>
-                    <dd className="font-semibold">{formatEuro(plan.setup)}</dd>
+                    <dt className="text-muted">Abonnement mensuel</dt>
+                    <dd className="font-semibold">{formatEuro(plan.monthly)}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted">Premier mois</dt>
-                    <dd className="font-semibold">{formatEuro(plan.monthly)}</dd>
+                    <dt className="text-muted">Frais de mise en place</dt>
+                    <dd className="font-semibold">0 €</dd>
                   </div>
                   <div className="flex justify-between border-t border-line pt-3 text-base">
                     <dt className="font-semibold">Aujourd&apos;hui</dt>
-                    <dd className="font-bold">{formatEuro(plan.setup + plan.monthly)}</dd>
+                    <dd className="font-bold">{formatEuro(plan.monthly)}</dd>
                   </div>
                 </dl>
-                <p className="mt-4 text-xs leading-relaxed text-muted-2">Puis {formatEuro(plan.monthly)} par mois. Résiliable en un clic.</p>
+                <p className="mt-4 text-xs leading-relaxed text-muted-2">Renouvelé chaque mois, sans engagement. Résiliable en un clic.</p>
                 <div className="mt-6 border-t border-line pt-5 text-sm">
                   <p className="label text-muted">Compte</p>
                   <p className="mt-2 font-medium">{state.account.displayName}</p>

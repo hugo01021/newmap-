@@ -10,6 +10,7 @@ import { ChoiceCard } from "@/components/ui/ChoiceCard";
 import { PillButton } from "@/components/ui/PillButton";
 import { ArrowLeft, ArrowRight } from "@/components/ui/Icons";
 import { cn } from "@/lib/cn";
+import { formatEuro, planForPlayers } from "@/lib/data/pricing";
 
 type AnswerValue = NonNullable<WizardAnswers[keyof WizardAnswers]>;
 
@@ -39,10 +40,10 @@ const questions: Question[] = [
     text: "Tu pourras augmenter plus tard. Commence avec ce qui te semble réaliste pour ton lancement.",
     cols: 4,
     options: [
-      { value: 32, label: "32", description: "Une communauté intime." },
-      { value: 64, label: "64", description: "Le format classique." },
-      { value: 128, label: "128", description: "Une vraie ville animée." },
-      { value: 256, label: "256", description: "Grande échelle." },
+      { value: 32, label: "32", description: `Une communauté intime · ${formatEuro(planForPlayers(32).monthly)} / mois` },
+      { value: 64, label: "64", description: `Le format classique · ${formatEuro(planForPlayers(64).monthly)} / mois` },
+      { value: 128, label: "128", description: `Une vraie ville animée · ${formatEuro(planForPlayers(128).monthly)} / mois` },
+      { value: 256, label: "256", description: `Grande échelle · ${formatEuro(planForPlayers(256).monthly)} / mois` },
     ],
   },
   {

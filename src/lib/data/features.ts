@@ -76,7 +76,7 @@ export const features: Feature[] = [
       "Page de présentation générée depuis ta fiche",
       "Règlement et guide du débutant",
       "Bouton « Rejoindre » et lien Discord",
-      "Nom de domaine personnalisé (offre Studio)",
+      "Nom de domaine personnalisé (en option)",
     ],
     image: "featureSite",
   },
