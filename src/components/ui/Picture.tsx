@@ -22,7 +22,7 @@ export function Picture({ image, className, imgClassName, priority, ratio, hover
       className={cn("group relative overflow-hidden rounded-card bg-ink-2", className)}
       style={ratio ? { aspectRatio: ratio } : undefined}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- placeholders SVG ; passe à next/image en remplaçant par des JPG */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- illustrations SVG ; passe à next/image si tu les remplaces par des JPG */}
       <img
         src={src}
         alt={alt}

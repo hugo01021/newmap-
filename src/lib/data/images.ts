@@ -1,8 +1,8 @@
 /**
- * Emplacements d'images.
- * Remplace les fichiers dans /public/images en gardant le même nom
- * (ou change simplement le chemin ici). Les fichiers actuels sont des
- * placeholders SVG générés : scripts/placeholders.mjs.
+ * Images du site.
+ * Les fichiers actuels sont des illustrations vectorielles générées par
+ * scripts/images.mjs. Remplace n'importe lequel par ta propre image
+ * (capture du serveur, du panel…) en gardant le même nom, ou change le chemin ici.
  */
 export const images = {
   hero: { src: "/images/hero-accueil.svg", alt: "Vue du serveur au coucher du soleil" },

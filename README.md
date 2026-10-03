@@ -32,9 +32,9 @@ Pages secondaires : `/tarifs`, `/communaute`, `/a-propos`, `/connexion`, `/fonct
 
 L'état du parcours est conservé dans `localStorage` (`src/lib/wizard-store.tsx`) : on peut revenir en arrière et reprendre là où on s'était arrêté. Le panel fonctionne aussi sans parcours (mode démonstration).
 
-## Images à remplacer
+## Images
 
-Les images sont des placeholders SVG générés dans `public/images/` (nom affiché dessus). Remplace chaque fichier en gardant le même nom, ou change le chemin dans `src/lib/data/images.ts`. Pour les régénérer : `node scripts/placeholders.mjs`.
+Les images de `public/images/` sont des illustrations vectorielles (SVG) générées par `scripts/images.mjs` : ville au coucher du soleil, voiture de police, baies de serveurs, Discord, panel, coffre de banque… Elles ne reprennent aucun visuel du jeu. Pour les remplacer par tes propres captures, garde le même nom de fichier ou change le chemin dans `src/lib/data/images.ts`. Pour les régénérer : `node scripts/images.mjs`.
 
 ## Où brancher le réel
 
