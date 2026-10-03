@@ -18,7 +18,7 @@ export const images = {
   showcase3: { src: "/images/showcase-panel.jpg", alt: "Le panel de gestion" },
   showcase4: { src: "/images/showcase-discord.jpg", alt: "Le Discord généré" },
   featureServer: { src: "/images/feature-serveur.jpg", alt: "Serveur de jeu" },
-  featureJobs: { src: "/images/feature-jobs.jpg", alt: "Ambulance en intervention dans la circulation" },
+  featureJobs: { src: "/images/feature-jobs.jpg", alt: "Ambulance, voiture de police et camion de pompiers en intervention de nuit" },
   featureEconomy: { src: "/images/feature-economie.jpg", alt: "Économie" },
   featureDiscord: { src: "/images/feature-discord.jpg", alt: "Discord automatique" },
   featureSite: { src: "/images/feature-site.jpg", alt: "Site web" },
