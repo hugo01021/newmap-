@@ -19,6 +19,7 @@ import { ArrowRight, Check, Discord, Loader, Mail, Shield } from "@/components/u
 type Phase = "plan" | "account" | "payment";
 
 const ease = [0.16, 1, 0.3, 1] as const;
+const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "1";
 
 export default function OffrePage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function OffrePage() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState<null | "email" | "discord" | "pay">(null);
   const [card, setCard] = useState({ number: "", exp: "", cvc: "", name: "" });
+  const [payError, setPayError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -64,6 +66,7 @@ export default function OffrePage() {
     setPhase("payment");
   };
 
+  /** Paiement simulé (sans clé Stripe). */
   const pay = async () => {
     if (!plan || !state.account) return;
     setBusy("pay");
@@ -73,6 +76,27 @@ export default function OffrePage() {
       router.push("/creer/construction");
     }
     setBusy(null);
+  };
+
+  /** Paiement réel : on ouvre la page de paiement hébergée par Stripe. */
+  const payWithStripe = async () => {
+    if (!plan || !state.account) return;
+    setBusy("pay");
+    setPayError(null);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId: plan.id, email: state.account.email, serverName: state.spec?.name }),
+      });
+      const data = await res.json();
+      if (data.mock) return pay();
+      if (!res.ok || !data.url) throw new Error(data.error ?? "Le paiement est momentanément indisponible.");
+      window.location.assign(data.url);
+    } catch (e) {
+      setPayError((e as Error).message);
+      setBusy(null);
+    }
   };
 
   const cardReady = card.number.replace(/\s/g, "").length >= 12 && card.exp.length >= 4 && card.cvc.length >= 3 && card.name.trim().length > 1;
@@ -188,11 +212,24 @@ export default function OffrePage() {
             <motion.div key="payment" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.45, ease }} className="grid gap-6 lg:grid-cols-5">
               <div className="rounded-card border border-line bg-ink-2/60 p-6 sm:p-8 lg:col-span-3">
                 <div className="flex items-center justify-between">
-                  <span className="label text-muted">Carte bancaire</span>
+                  <span className="label text-muted">{stripeEnabled ? "Paiement" : "Carte bancaire"}</span>
                   <span className="flex items-center gap-1.5 text-xs text-muted">
                     <Shield width={13} height={13} /> Paiement sécurisé
                   </span>
                 </div>
+                {stripeEnabled ? (
+                  <div className="mt-6">
+                    <p className="text-[15px] leading-relaxed text-muted">
+                      Tu vas être redirigé vers la page de paiement sécurisée de Stripe. Carte bancaire, Apple Pay ou Google Pay. Ta carte n&apos;est jamais vue par ServCraft.
+                    </p>
+                    <PillButton size="lg" className="mt-6 w-full" onClick={payWithStripe} disabled={busy !== null} icon={busy === "pay" ? <Loader width={16} height={16} /> : undefined}>
+                      {busy === "pay" ? "Ouverture du paiement…" : `Payer ${formatEuro(plan.monthly)} par mois`}
+                    </PillButton>
+                    {payError && <p className="mt-3 text-sm text-white/80">{payError}</p>}
+                    <p className="mt-4 text-center text-xs text-muted-2">Abonnement mensuel, résiliable à tout moment depuis le panel.</p>
+                  </div>
+                ) : (
+                <>
                 <form
                   className="mt-6 space-y-4"
                   onSubmit={(e) => {
@@ -229,6 +266,8 @@ export default function OffrePage() {
                   </PillButton>
                 </form>
                 <p className="mt-4 text-center text-xs text-muted-2">Démonstration : aucun paiement réel n&apos;est effectué.</p>
+                </>
+                )}
               </div>
 
               <aside className="rounded-card border border-line bg-ink-2/40 p-6 sm:p-8 lg:col-span-2">

@@ -56,6 +56,8 @@ export interface WizardState {
     siteUrl: string;
   } | null;
   onboarding: Onboarding;
+  /** Identifiants Stripe une fois le paiement réel effectué. */
+  billing: { customerId: string; subscriptionId: string; reference: string } | null;
 }
 
 /** Une proposition de changement renvoyée par l'IA de gestion. */

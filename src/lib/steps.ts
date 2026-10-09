@@ -17,5 +17,6 @@ export const steps: Step[] = [
 ];
 
 export function stepForPath(pathname: string): Step | undefined {
+  if (pathname === "/creer/paiement") return steps[3];
   return steps.find((s) => s.path === pathname) ?? (pathname.startsWith("/panel") ? steps[6] : undefined);
 }

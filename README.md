@@ -41,6 +41,17 @@ Deux types d'images dans `public/images/` :
 
 Le fichier `src/lib/data/images.ts` liste chaque emplacement avec son chemin, son texte alternatif et, si besoin, son point de cadrage. Pour changer une image, remplace le fichier en gardant son nom ou modifie le chemin dans ce fichier.
 
+## Paiement Stripe
+
+Le paiement est réel dès que `STRIPE_SECRET_KEY` est renseignée (fichier `.env.local` en local, « Environment Variables » dans Vercel). Sans clé, le paiement est simulé.
+
+- L'étape Offre ouvre la page de paiement hébergée par Stripe (abonnement mensuel). Les quatre produits et tarifs sont créés automatiquement dans Stripe à la première utilisation (`src/lib/stripe.ts`).
+- Le retour se fait sur `/creer/paiement`, qui vérifie la session côté serveur (`/api/checkout/verify`) avant de lancer la construction.
+- `/api/stripe/webhook` reçoit les événements Stripe (signature vérifiée avec `STRIPE_WEBHOOK_SECRET`). À compléter avec la base de données.
+- Carte de test : `4242 4242 4242 4242`, n'importe quelle date future et n'importe quel code.
+
+Variables : voir `.env.example`.
+
 ## Où brancher le réel
 
 Chaque service simulé garde la signature à conserver :

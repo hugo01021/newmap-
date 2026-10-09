@@ -15,6 +15,7 @@ export const initialState: WizardState = {
   built: false,
   server: null,
   onboarding: { cfxKey: "", cfxDone: false, discordCreated: false, discordBuilt: false, playDone: false },
+  billing: null,
 };
 
 type Action =
@@ -28,6 +29,7 @@ type Action =
   | { type: "setPaid"; paid: boolean }
   | { type: "setServer"; server: WizardState["server"] }
   | { type: "setOnboarding"; patch: Partial<Onboarding> }
+  | { type: "setBilling"; billing: WizardState["billing"] }
   | { type: "newServer" }
   | { type: "reset" };
 
@@ -55,6 +57,8 @@ function reducer(state: WizardState, action: Action): WizardState {
       return { ...state, server: action.server, built: Boolean(action.server) };
     case "setOnboarding":
       return { ...state, onboarding: { ...state.onboarding, ...action.patch } };
+    case "setBilling":
+      return { ...state, billing: action.billing };
     case "newServer":
       // Nouveau parcours : on garde uniquement le compte.
       return { ...initialState, account: state.account };
@@ -77,6 +81,7 @@ interface WizardContextValue {
   setPaid: (paid: boolean) => void;
   setServer: (server: WizardState["server"]) => void;
   setOnboarding: (patch: Partial<Onboarding>) => void;
+  setBilling: (billing: WizardState["billing"]) => void;
   newServer: () => void;
   reset: () => void;
 }
@@ -116,12 +121,13 @@ export function WizardProvider({ children }: { children: ReactNode }) {
   const setPaid = useCallback((paid: boolean) => dispatch({ type: "setPaid", paid }), []);
   const setServer = useCallback((server: WizardState["server"]) => dispatch({ type: "setServer", server }), []);
   const setOnboarding = useCallback((patch: Partial<Onboarding>) => dispatch({ type: "setOnboarding", patch }), []);
+  const setBilling = useCallback((billing: WizardState["billing"]) => dispatch({ type: "setBilling", billing }), []);
   const newServer = useCallback(() => dispatch({ type: "newServer" }), []);
   const reset = useCallback(() => dispatch({ type: "reset" }), []);
 
   const value = useMemo<WizardContextValue>(
-    () => ({ state, hydrated, setPrompt, answer, setSpec, patchSpec, setPlan, setAccount, setPaid, setServer, setOnboarding, newServer, reset }),
-    [state, hydrated, setPrompt, answer, setSpec, patchSpec, setPlan, setAccount, setPaid, setServer, setOnboarding, newServer, reset],
+    () => ({ state, hydrated, setPrompt, answer, setSpec, patchSpec, setPlan, setAccount, setPaid, setServer, setOnboarding, setBilling, newServer, reset }),
+    [state, hydrated, setPrompt, answer, setSpec, patchSpec, setPlan, setAccount, setPaid, setServer, setOnboarding, setBilling, newServer, reset],
   );
 
   return <WizardContext.Provider value={value}>{children}</WizardContext.Provider>;
