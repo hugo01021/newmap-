@@ -52,6 +52,17 @@ Le site existe en français (par défaut), anglais, espagnol et allemand. Le vis
 
 Les écrans produit (`public/images/*.jpg` générés par `scripts/screens.mjs`) restent en français. Les noms des produits Stripe aussi.
 
+## IA (Anthropic)
+
+L'IA est réelle dès que `ANTHROPIC_API_KEY` est renseignée (fichier `.env.local` en local, « Environment Variables » dans Vercel, puis redéploiement). Sans clé, la fiche du serveur et les réponses du panel sont simulées par des règles simples.
+
+- `src/app/api/ai/spec` : génère la fiche du serveur à partir de la description et des réponses (étape 3).
+- `src/app/api/ai/propose` : prépare une modification demandée dans le panel (titre, résumé, liste des changements, impact).
+- `src/lib/ai/prompts.ts` : les consignes données à l'IA (ton, pas de jargon, langue du site). C'est là qu'on ajuste son comportement.
+- `src/lib/ai/server.ts` : le client, le modèle (`ANTHROPIC_MODEL`, par défaut `claude-opus-5-5`), le niveau de réflexion (`ANTHROPIC_EFFORT`, par défaut `low`) et un garde-fou de 30 appels par adresse et par 10 minutes.
+
+Les réponses sont imposées dans une forme précise (sorties structurées), puis vérifiées et nettoyées avant d'arriver dans le site. Si l'IA ne répond pas (panne, limite atteinte), le site retombe sur la simulation sans afficher d'erreur. Le garde-fou est en mémoire : à remplacer par un vrai compteur quand la base de données existera.
+
 ## Paiement Stripe
 
 Le paiement est réel dès que `STRIPE_SECRET_KEY` est renseignée (fichier `.env.local` en local, « Environment Variables » dans Vercel). Sans clé, le paiement est simulé.
@@ -67,7 +78,7 @@ Variables : voir `.env.example`.
 
 Chaque service simulé garde la signature à conserver :
 
-- `src/lib/services/ai.ts` — génération de la fiche (`generateSpec`) et propositions de modification (`proposeChange`) → API d'IA.
+- `src/lib/services/ai.ts` — génération de la fiche (`generateSpec`) et propositions de modification (`proposeChange`) : appelle `/api/ai/*` quand la clé Anthropic existe, sinon simule.
 - `src/lib/services/payments.ts` — `checkout` → Stripe Checkout.
 - `src/lib/services/auth.ts` — `signInWithEmail`, `signInWithDiscord` → lien magique + OAuth Discord.
 - `src/lib/services/deploy.ts` — `runDeployment` → moteur de déploiement (SSE / WebSocket).

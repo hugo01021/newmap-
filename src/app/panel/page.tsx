@@ -140,7 +140,7 @@ export default function PanelPage() {
           <PanelTabContent key={`${tab}-${locale}`} tab={tab} spec={spec} history={history} online={online} discordMembers={discordMembers} onLog={log} />
         </div>
         <div className="lg:col-span-5 xl:col-span-4">
-          <PanelChat onPublished={onPublished} />
+          <PanelChat spec={spec} onPublished={onPublished} />
         </div>
       </main>
 

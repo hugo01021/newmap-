@@ -1,10 +1,9 @@
 /**
- * Service IA (simulé).
- * À brancher ensuite sur l'API d'IA : remplacer le corps de ces fonctions
- * par des appels à /api/ai/* en conservant les mêmes signatures.
- * Les textes produits viennent du dictionnaire de la langue courante.
+ * Service IA.
+ * Avec une clé Anthropic, les pages appellent /api/ai/* (vraie IA). Sans clé, ou si l'IA
+ * ne répond pas, on retombe sur la simulation ci-dessous (règles simples, textes du dictionnaire).
  */
-import type { AiProposal, ServerLanguage, ServerSpec, WizardAnswers } from "../types";
+import { isServerLanguage, type AiProposal, type ServerLanguage, type ServerSpec, type WizardAnswers } from "../types";
 import type { Locale } from "../i18n/config";
 import { fmt } from "../i18n/config";
 import type { Dictionary } from "../i18n/dictionaries";
@@ -62,8 +61,8 @@ const NAMES = [
   "Côte Ouest RP",
 ];
 
-/** Produit la fiche du serveur à partir du prompt et des réponses, dans la langue du site. */
-export async function generateSpec(prompt: string, answers: WizardAnswers, locale: Locale, t: Dictionary): Promise<ServerSpec> {
+/** Simulation : fiche produite par des règles simples, dans la langue du site. */
+async function simulateSpec(prompt: string, answers: WizardAnswers, locale: Locale, t: Dictionary): Promise<ServerSpec> {
   await wait(900);
   const text = prompt.toLowerCase();
   const seed = hash(prompt);
@@ -182,8 +181,8 @@ const AREAS: Array<{ test: RegExp; area: AreaKey; build: (req: string, ctx: Ctx)
 
 let counter = 0;
 
-/** Répond à une demande de modification en langage naturel, dans la langue du site. */
-export async function proposeChange(request: string, locale: Locale, t: Dictionary): Promise<AiProposal> {
+/** Simulation : réponse à une demande de modification, par mots-clés. */
+async function simulateProposal(request: string, locale: Locale, t: Dictionary): Promise<AiProposal> {
   await wait(1200 + Math.random() * 600);
   const ctx: Ctx = { locale, t };
   const match = AREAS.find((a) => a.test.test(request.toLowerCase()));
@@ -197,4 +196,59 @@ export async function proposeChange(request: string, locale: Locale, t: Dictiona
       };
   counter += 1;
   return { id: `prop-${Date.now()}-${counter}`, request, area: t.services.proposals.areas[match?.area ?? "general"], ...base };
+}
+
+/* ------------------------------------------------------------------ */
+/* Vraie IA (routes /api/ai/*), avec repli sur la simulation            */
+/* ------------------------------------------------------------------ */
+
+const aiEnabled = process.env.NEXT_PUBLIC_AI_ENABLED === "1";
+const PLAYERS = [32, 64, 128, 256];
+const SERIOUSNESS = ["casual", "semi", "hardcore"];
+const ECONOMIES = ["rapide", "realiste", "hardcore"];
+const IMPACTS = ["faible", "moyen", "important"];
+
+const isStringList = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === "string");
+
+function asSpec(v: unknown): ServerSpec | null {
+  if (!v || typeof v !== "object") return null;
+  const o = v as Record<string, unknown>;
+  if (typeof o.name !== "string" || typeof o.tagline !== "string" || !isServerLanguage(o.language)) return null;
+  if (!SERIOUSNESS.includes(o.style as string) || !ECONOMIES.includes(o.economy as string) || !PLAYERS.includes(o.players as number)) return null;
+  if (!isStringList(o.jobs) || !isStringList(o.gangs) || !isStringList(o.options)) return null;
+  return o as unknown as ServerSpec;
+}
+
+function asProposal(v: unknown): AiProposal | null {
+  if (!v || typeof v !== "object") return null;
+  const o = v as Record<string, unknown>;
+  if (typeof o.id !== "string" || typeof o.title !== "string" || typeof o.summary !== "string" || typeof o.area !== "string") return null;
+  if (!isStringList(o.changes) || !IMPACTS.includes(o.impact as string)) return null;
+  return o as unknown as AiProposal;
+}
+
+async function callAi<T>(path: string, body: unknown, pick: (data: Record<string, unknown>) => T | null): Promise<T | null> {
+  if (!aiEnabled) return null;
+  try {
+    const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) return null;
+    const data = (await res.json()) as Record<string, unknown>;
+    if (data.mock) return null;
+    return pick(data);
+  } catch {
+    return null;
+  }
+}
+
+/** Produit la fiche du serveur à partir du prompt et des réponses, dans la langue du site. */
+export async function generateSpec(prompt: string, answers: WizardAnswers, locale: Locale, t: Dictionary): Promise<ServerSpec> {
+  const real = await callAi("/api/ai/spec", { prompt, answers }, (d) => asSpec(d.spec));
+  return real ?? simulateSpec(prompt, answers, locale, t);
+}
+
+/** Répond à une demande de modification en langage naturel, dans la langue du site. */
+export async function proposeChange(request: string, locale: Locale, t: Dictionary, spec: ServerSpec | null = null): Promise<AiProposal> {
+  const context = spec ? { name: spec.name, style: spec.style, economy: spec.economy, players: spec.players, jobs: spec.jobs, gangs: spec.gangs, options: spec.options } : null;
+  const real = await callAi("/api/ai/propose", { request, spec: context }, (d) => asProposal(d.proposal));
+  return real ?? simulateProposal(request, locale, t);
 }

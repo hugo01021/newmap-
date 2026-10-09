@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { useLocale } from "@/lib/i18n/client";
 import { proposeChange } from "@/lib/services/ai";
-import type { AiProposal } from "@/lib/types";
+import type { AiProposal, ServerSpec } from "@/lib/types";
 import { AiResponseCard } from "@/components/ui/AiResponseCard";
 import { Send, Spark } from "@/components/ui/Icons";
 
@@ -20,11 +20,13 @@ interface Message {
 }
 
 interface PanelChatProps {
+  /** La fiche du serveur, donnée à l'IA pour des propositions cohérentes. */
+  spec: ServerSpec;
   onPublished: (proposal: AiProposal) => void;
 }
 
 /** Zone centrale : discussion avec l'IA de gestion. */
-export function PanelChat({ onPublished }: PanelChatProps) {
+export function PanelChat({ spec, onPublished }: PanelChatProps) {
   const { t, locale } = useLocale();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -40,7 +42,7 @@ export function PanelChat({ onPublished }: PanelChatProps) {
     setMessages((m) => [...m, { id: `u-${Date.now()}`, role: "user", text: trimmed }]);
     setThinking(true);
     scroll();
-    const proposal = await proposeChange(trimmed, locale, t);
+    const proposal = await proposeChange(trimmed, locale, t, spec);
     setMessages((m) => [...m, { id: proposal.id, role: "ai", proposal, state: "idle" }]);
     setThinking(false);
     scroll();
