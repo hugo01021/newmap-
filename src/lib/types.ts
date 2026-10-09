@@ -2,6 +2,10 @@ export type Seriousness = "casual" | "semi" | "hardcore";
 export type PlayerCount = 32 | 64 | 128 | 256;
 export type EconomyMode = "rapide" | "realiste" | "hardcore";
 export type PlanId = "p32" | "p64" | "p128" | "p256";
+/** Langue parlée sur le serveur (celle des joueurs), indépendante de la langue du site. */
+export type ServerLanguage = "fr" | "en" | "es" | "de";
+export const serverLanguages: ServerLanguage[] = ["fr", "en", "es", "de"];
+export const isServerLanguage = (v: unknown): v is ServerLanguage => (serverLanguages as unknown[]).includes(v);
 
 export interface WizardAnswers {
   seriousness?: Seriousness;
@@ -15,7 +19,7 @@ export interface WizardAnswers {
 export interface ServerSpec {
   name: string;
   tagline: string;
-  language: string;
+  language: ServerLanguage;
   style: Seriousness;
   players: PlayerCount;
   economy: EconomyMode;

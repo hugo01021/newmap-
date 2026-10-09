@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { stripe, stripeEnabled } from "@/lib/stripe";
+import { getI18n } from "@/lib/i18n/server";
 
 /** Vérifie côté serveur qu'une session de paiement Stripe est bien réglée. */
 export async function GET(req: Request) {
+  const { t } = await getI18n();
   const sessionId = new URL(req.url).searchParams.get("session_id");
-  if (!sessionId) return NextResponse.json({ error: "Session manquante." }, { status: 400 });
-  if (!stripeEnabled) return NextResponse.json({ error: "Stripe n'est pas configuré." }, { status: 400 });
+  if (!sessionId) return NextResponse.json({ error: t.api.missingSession }, { status: 400 });
+  if (!stripeEnabled) return NextResponse.json({ error: t.api.notConfigured }, { status: 400 });
 
   try {
     const session = await stripe().checkout.sessions.retrieve(sessionId, { expand: ["subscription"] });
@@ -21,6 +23,6 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error("[stripe] vérification impossible", error);
-    return NextResponse.json({ error: "Impossible de vérifier le paiement." }, { status: 502 });
+    return NextResponse.json({ error: t.api.cannotVerify }, { status: 502 });
   }
 }

@@ -12,7 +12,8 @@ export async function signInWithEmail(email: string): Promise<Account> {
   return { email, provider: "email", displayName: name.charAt(0).toUpperCase() + name.slice(1) };
 }
 
-export async function signInWithDiscord(): Promise<Account> {
+/** `displayName` : le libellé « Ton compte Discord » dans la langue du site. */
+export async function signInWithDiscord(displayName: string): Promise<Account> {
   await wait(1100);
-  return { email: "toi@discord.local", provider: "discord", displayName: "Ton compte Discord" };
+  return { email: "toi@discord.local", provider: "discord", displayName };
 }

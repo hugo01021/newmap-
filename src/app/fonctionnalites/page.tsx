@@ -1,22 +1,25 @@
 import type { Metadata } from "next";
 import { SiteShell } from "@/components/layout/SiteShell";
-import { features } from "@/lib/data/features";
+import { localizedFeatures } from "@/lib/data/features";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { Tag } from "@/components/ui/Tag";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Fonctionnalités",
-  description: "Serveur de jeu, jobs et factions, économie, Discord automatique, site web, IA de gestion.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.pages.featuresIndex.metaTitle, description: t.pages.featuresIndex.metaDescription };
+}
 
-export default function FonctionnalitesPage() {
+export default async function FonctionnalitesPage() {
+  const { t } = await getI18n();
+  const features = localizedFeatures(t);
   return (
     <SiteShell>
       <section className="container-x pb-24 pt-20 sm:pt-28">
         <Reveal>
-          <Tag>Fonctionnalités</Tag>
-          <h1 className="display mt-6 max-w-4xl text-5xl sm:text-7xl">Tout ce que ton serveur sait faire.</h1>
+          <Tag>{t.pages.featuresIndex.tag}</Tag>
+          <h1 className="display mt-6 max-w-4xl text-5xl sm:text-7xl">{t.pages.featuresIndex.title}</h1>
         </Reveal>
         <div className="mt-16 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-3 lg:gap-y-14">
           {features.map((f, i) => (

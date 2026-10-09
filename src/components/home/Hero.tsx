@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { images } from "@/lib/data/images";
+import { useT } from "@/lib/i18n/client";
 import { Tag } from "@/components/ui/Tag";
 import { PillButton } from "@/components/ui/PillButton";
 import { PlayIcon } from "@/components/ui/Icons";
@@ -9,6 +10,7 @@ import { PlayIcon } from "@/components/ui/Icons";
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function Hero() {
+  const t = useT();
   return (
     <section className="relative isolate min-h-[100svh] overflow-hidden">
       <motion.div
@@ -18,7 +20,7 @@ export function Hero() {
         transition={{ duration: 1.6, ease }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={images.hero.src} alt={images.hero.alt} className="h-full w-full object-cover" fetchPriority="high" />
+        <img src={images.hero.src} alt={t.images.hero} className="h-full w-full object-cover" fetchPriority="high" />
       </motion.div>
       {/* Dégradés : lisibilité + fondu vers le noir */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-ink/70 via-ink/20 to-transparent" />
@@ -27,7 +29,7 @@ export function Hero() {
 
       <div className="container-x flex min-h-[100svh] flex-col justify-end pb-20 pt-32 sm:pb-28">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3, ease }}>
-          <Tag>Serveur GTA V RP</Tag>
+          <Tag>{t.hero.tag}</Tag>
         </motion.div>
         <motion.h1
           className="display mt-7 max-w-5xl text-[2.9rem] text-white sm:text-7xl lg:text-[6.5rem]"
@@ -35,9 +37,9 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.45, ease }}
         >
-          Décris ton serveur.
+          {t.hero.line1}
           <br />
-          L&apos;IA le construit.
+          {t.hero.line2}
         </motion.h1>
         <motion.div
           className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center"
@@ -46,10 +48,10 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.7, ease }}
         >
           <PillButton href="/creer" size="lg">
-            Créer mon serveur
+            {t.common.create}
           </PillButton>
           <PillButton href="/#demo" variant="secondary" size="lg" icon={<PlayIcon width={14} height={14} />}>
-            Voir la démo
+            {t.common.demo}
           </PillButton>
         </motion.div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/client";
 import { PillButton } from "./PillButton";
 import { Check, Copy } from "./Icons";
 
@@ -15,6 +16,7 @@ interface CopyFieldProps {
 
 /** Valeur à copier en un clic (adresse de connexion, clé, lien). */
 export function CopyField({ label, value, className, inline }: CopyFieldProps) {
+  const t = useT();
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {
@@ -27,7 +29,7 @@ export function CopyField({ label, value, className, inline }: CopyFieldProps) {
   };
   const button = (
     <PillButton size="sm" variant="secondary" onClick={copy} icon={copied ? <Check width={14} height={14} /> : <Copy width={14} height={14} />}>
-      {copied ? "Copié" : "Copier"}
+      {copied ? t.common.copied : t.common.copy}
     </PillButton>
   );
   if (inline) {

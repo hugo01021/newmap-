@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
+import { fmt } from "@/lib/i18n/config";
+import { useT } from "@/lib/i18n/client";
 import type { AiProposal } from "@/lib/types";
 import { PillButton } from "./PillButton";
 import { Check, Spark } from "./Icons";
@@ -16,6 +18,7 @@ interface AiResponseCardProps {
 
 /** Carte de réponse de l'IA : résumé du changement + Publier / Annuler. */
 export function AiResponseCard({ proposal, state = "idle", onPublish, onCancel, className }: AiResponseCardProps) {
+  const t = useT();
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -28,7 +31,9 @@ export function AiResponseCard({ proposal, state = "idle", onPublish, onCancel, 
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-ink">
             <Spark width={14} height={14} />
           </span>
-          <span className="label text-muted">IA ServCraft · {proposal.area}</span>
+          <span className="label text-muted">
+            {t.aiCard.by} · {proposal.area}
+          </span>
         </div>
         <span
           className={cn(
@@ -36,7 +41,7 @@ export function AiResponseCard({ proposal, state = "idle", onPublish, onCancel, 
             proposal.impact === "important" ? "border-white/40 text-white" : "border-line text-muted",
           )}
         >
-          Impact {proposal.impact}
+          {fmt(t.aiCard.impact, { level: t.aiCard.impacts[proposal.impact] })}
         </span>
       </div>
 
@@ -58,17 +63,17 @@ export function AiResponseCard({ proposal, state = "idle", onPublish, onCancel, 
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-ink">
               <Check width={11} height={11} strokeWidth={3} />
             </span>
-            Publié sur ton serveur
+            {t.aiCard.published}
           </span>
         ) : state === "cancelled" ? (
-          <span className="text-sm text-muted">Modification annulée</span>
+          <span className="text-sm text-muted">{t.aiCard.cancelled}</span>
         ) : (
           <>
             <PillButton onClick={onPublish} disabled={state === "publishing"}>
-              {state === "publishing" ? "Publication…" : "Publier"}
+              {state === "publishing" ? t.aiCard.publishing : t.common.publish}
             </PillButton>
             <PillButton variant="secondary" onClick={onCancel} disabled={state === "publishing"}>
-              Annuler
+              {t.common.cancel}
             </PillButton>
           </>
         )}

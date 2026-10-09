@@ -2,35 +2,36 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteShell } from "@/components/layout/SiteShell";
-import { features } from "@/lib/data/features";
+import { isFeatureSlug, localizedFeatures } from "@/lib/data/features";
 import { Picture } from "@/components/ui/Picture";
 import { Reveal } from "@/components/ui/Reveal";
 import { Tag } from "@/components/ui/Tag";
 import { PillButton } from "@/components/ui/PillButton";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { ArrowLeft, Check } from "@/components/ui/Icons";
-
-export function generateStaticParams() {
-  return features.map((f) => ({ slug: f.slug }));
-}
+import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata({ params }: PageProps<"/fonctionnalites/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const f = features.find((x) => x.slug === slug);
-  return f ? { title: f.title, description: f.intro } : {};
+  if (!isFeatureSlug(slug)) return {};
+  const { t } = await getI18n();
+  const f = t.pages.features[slug];
+  return { title: f.title, description: f.intro };
 }
 
 export default async function FeaturePage({ params }: PageProps<"/fonctionnalites/[slug]">) {
   const { slug } = await params;
-  const feature = features.find((f) => f.slug === slug);
-  if (!feature) notFound();
+  if (!isFeatureSlug(slug)) notFound();
+  const { t } = await getI18n();
+  const features = localizedFeatures(t);
+  const feature = features.find((f) => f.slug === slug)!;
   const others = features.filter((f) => f.slug !== slug).slice(0, 3);
 
   return (
     <SiteShell>
       <section className="container-x pb-20 pt-20 sm:pt-28">
         <Link href="/fonctionnalites" className="label inline-flex items-center gap-2 text-muted transition-opacity hover:opacity-70">
-          <ArrowLeft width={14} height={14} /> Toutes les fonctionnalités
+          <ArrowLeft width={14} height={14} /> {t.pages.feature.all}
         </Link>
         <div className="mt-10 grid gap-12 lg:grid-cols-12">
           <Reveal className="lg:col-span-5">
@@ -47,7 +48,7 @@ export default async function FeaturePage({ params }: PageProps<"/fonctionnalite
             </ul>
             <div className="mt-10">
               <PillButton href="/creer" size="lg">
-                Créer mon serveur
+                {t.common.create}
               </PillButton>
             </div>
           </Reveal>
@@ -58,7 +59,7 @@ export default async function FeaturePage({ params }: PageProps<"/fonctionnalite
       </section>
       <section className="border-t border-line">
         <div className="container-x py-24">
-          <p className="label text-muted">Voir aussi</p>
+          <p className="label text-muted">{t.pages.feature.seeAlso}</p>
           <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-3">
             {others.map((f) => (
               <ImageCard key={f.slug} image={f.image} label={f.label} title={f.title} href={`/fonctionnalites/${f.slug}`} ratio="16/10" />

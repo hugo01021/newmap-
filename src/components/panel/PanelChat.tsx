@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/cn";
+import { useLocale } from "@/lib/i18n/client";
 import { proposeChange } from "@/lib/services/ai";
 import type { AiProposal } from "@/lib/types";
 import { AiResponseCard } from "@/components/ui/AiResponseCard";
@@ -18,19 +19,13 @@ interface Message {
   state?: CardState;
 }
 
-const suggestions = [
-  "Divise le salaire des policiers par 2",
-  "Ajoute un braquage de banque avec 4 policiers minimum",
-  "Ajoute un job de chauffeur de bus",
-  "Baisse le prix des voitures de 20 %",
-];
-
 interface PanelChatProps {
   onPublished: (proposal: AiProposal) => void;
 }
 
 /** Zone centrale : discussion avec l'IA de gestion. */
 export function PanelChat({ onPublished }: PanelChatProps) {
+  const { t, locale } = useLocale();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -39,13 +34,13 @@ export function PanelChat({ onPublished }: PanelChatProps) {
   const scroll = () => requestAnimationFrame(() => listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" }));
 
   const send = async (text: string) => {
-    const t = text.trim();
-    if (!t || thinking) return;
+    const trimmed = text.trim();
+    if (!trimmed || thinking) return;
     setInput("");
-    setMessages((m) => [...m, { id: `u-${Date.now()}`, role: "user", text: t }]);
+    setMessages((m) => [...m, { id: `u-${Date.now()}`, role: "user", text: trimmed }]);
     setThinking(true);
     scroll();
-    const proposal = await proposeChange(t);
+    const proposal = await proposeChange(trimmed, locale, t);
     setMessages((m) => [...m, { id: proposal.id, role: "ai", proposal, state: "idle" }]);
     setThinking(false);
     scroll();
@@ -70,16 +65,16 @@ export function PanelChat({ onPublished }: PanelChatProps) {
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-ink">
           <Spark width={14} height={14} />
         </span>
-        <span className="label text-muted">IA de gestion</span>
+        <span className="label text-muted">{t.panel.chat.label}</span>
       </header>
 
       <div ref={listRef} className="flex-1 space-y-5 overflow-y-auto px-5 py-6 scrollbar-none">
         {empty && (
           <div className="flex h-full flex-col items-start justify-end">
-            <h2 className="display text-4xl sm:text-5xl">Que veux-tu modifier&nbsp;?</h2>
-            <p className="mt-4 max-w-md text-muted">Décris le changement en une phrase. Je te montre exactement ce que je vais faire avant de publier.</p>
+            <h2 className="display text-4xl sm:text-5xl">{t.panel.chat.title}</h2>
+            <p className="mt-4 max-w-md text-muted">{t.panel.chat.text}</p>
             <div className="mt-6 flex flex-wrap gap-2">
-              {suggestions.map((s) => (
+              {t.panel.chat.suggestions.map((s) => (
                 <button key={s} type="button" onClick={() => send(s)} className="rounded-full border border-line px-4 py-2 text-left text-sm font-medium text-white transition-colors hover:border-white/40">
                   {s}
                 </button>
@@ -109,7 +104,7 @@ export function PanelChat({ onPublished }: PanelChatProps) {
                 <span key={i} className="h-1.5 w-1.5 rounded-full bg-white/70" style={{ animation: `pulse-dot 1.2s ${i * 0.2}s ease-in-out infinite` }} />
               ))}
             </span>
-            L&apos;IA analyse ta demande…
+            {t.panel.chat.thinking}
           </motion.div>
         )}
       </div>
@@ -132,11 +127,11 @@ export function PanelChat({ onPublished }: PanelChatProps) {
               }
             }}
             rows={1}
-            placeholder="Que veux-tu modifier ?"
-            aria-label="Ta demande"
+            placeholder={t.panel.chat.placeholder}
+            aria-label={t.panel.chat.aria}
             className="max-h-32 flex-1 resize-none bg-transparent px-3 py-2.5 text-[15px] text-white placeholder:text-muted-2 focus:outline-none"
           />
-          <button type="submit" disabled={!input.trim() || thinking} aria-label="Envoyer" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-ink transition-opacity disabled:opacity-30">
+          <button type="submit" disabled={!input.trim() || thinking} aria-label={t.panel.chat.send} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-ink transition-opacity disabled:opacity-30">
             <Send width={16} height={16} />
           </button>
         </div>

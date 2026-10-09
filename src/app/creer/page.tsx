@@ -4,7 +4,8 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
-import { examplePrompts } from "@/lib/data/prompts";
+import { fmt } from "@/lib/i18n/config";
+import { useT } from "@/lib/i18n/client";
 import { useWizard } from "@/lib/wizard-store";
 import { isPlanId } from "@/lib/data/pricing";
 import { StepHeading } from "@/components/wizard/StepHeading";
@@ -14,6 +15,7 @@ import { ArrowRight } from "@/components/ui/Icons";
 const MIN = 20;
 
 function DescribeStep() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const { state, hydrated, setPrompt, setPlan, newServer } = useWizard();
@@ -47,7 +49,7 @@ function DescribeStep() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center">
-      <StepHeading tag="Étape 1" title="Décris ton serveur." text="Comme si tu l'expliquais à un ami. L'ambiance, les métiers, les gangs, le niveau de sérieux. L'IA complète le reste." />
+      <StepHeading tag={t.describe.tag} title={t.describe.title} text={t.describe.text} />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -63,26 +65,26 @@ function DescribeStep() {
             onKeyDown={(e) => {
               if ((e.metaKey || e.ctrlKey) && e.key === "Enter") submit();
             }}
-            placeholder="Un serveur RP sérieux en français, ambiance Los Santos réaliste. Police, EMS, mécano…"
+            placeholder={t.describe.placeholder}
             className="block w-full resize-none bg-transparent px-5 py-4 text-lg leading-relaxed text-white placeholder:text-muted-2 focus:outline-none sm:text-2xl sm:leading-snug"
             rows={4}
             autoFocus
-            aria-label="Description de ton serveur"
+            aria-label={t.describe.aria}
           />
           <div className="flex items-center justify-between gap-4 px-3 pb-2 pt-1">
             <span className={cn("text-xs tabular-nums", ready ? "text-muted" : "text-muted-2")}>
-              {ready ? "Prêt." : `Encore ${Math.max(0, MIN - value.trim().length)} caractères`}
-              <span className="hidden sm:inline"> · Ctrl + Entrée pour continuer</span>
+              {ready ? t.describe.ready : fmt(t.describe.remaining, { n: Math.max(0, MIN - value.trim().length) })}
+              <span className="hidden sm:inline"> · {t.describe.shortcut}</span>
             </span>
             <PillButton onClick={submit} disabled={!ready} iconRight={<ArrowRight width={16} height={16} />}>
-              Continuer
+              {t.common.continue}
             </PillButton>
           </div>
         </div>
 
-        <p className="label mt-10 text-muted">Ou pars d&apos;un exemple</p>
+        <p className="label mt-10 text-muted">{t.describe.examplesLabel}</p>
         <div className="mt-4 flex flex-wrap gap-2">
-          {examplePrompts.map((ex) => (
+          {t.describe.examples.map((ex) => (
             <button
               key={ex.title}
               type="button"

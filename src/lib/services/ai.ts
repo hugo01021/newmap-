@@ -2,20 +2,28 @@
  * Service IA (simulé).
  * À brancher ensuite sur l'API d'IA : remplacer le corps de ces fonctions
  * par des appels à /api/ai/* en conservant les mêmes signatures.
+ * Les textes produits viennent du dictionnaire de la langue courante.
  */
-import type { AiProposal, ServerSpec, WizardAnswers } from "../types";
+import type { AiProposal, ServerLanguage, ServerSpec, WizardAnswers } from "../types";
+import type { Locale } from "../i18n/config";
+import { fmt } from "../i18n/config";
+import type { Dictionary } from "../i18n/dictionaries";
+import { formatGameMoney } from "../format";
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-const JOB_KEYWORDS: Record<string, string[]> = {
-  Police: ["police", "lspd", "flic", "sheriff"],
-  EMS: ["ems", "ambulance", "médecin", "medecin", "hôpital", "hopital", "secours"],
-  Mécano: ["méca", "meca", "garage", "mécano"],
-  Taxi: ["taxi", "uber", "chauffeur"],
-  Avocat: ["avocat", "juge", "tribunal", "justice"],
-  Journaliste: ["journal", "weazel", "presse"],
-  "Agent immobilier": ["immobilier", "agent immo"],
-  Concessionnaire: ["concession", "vendeur auto"],
+type JobKey = keyof Dictionary["services"]["jobs"];
+
+/** Mots-clés (français, anglais, espagnol, allemand) qui font apparaître un métier. */
+const JOB_KEYWORDS: Record<JobKey, string[]> = {
+  police: ["police", "lspd", "flic", "sheriff", "cops", "policía", "policia", "polizei", "polizist"],
+  ems: ["ems", "ambulance", "médecin", "medecin", "hôpital", "hopital", "secours", "paramedic", "hospital", "medic", "ambulancia", "médico", "medico", "rettungsdienst", "sanitäter", "krankenhaus", "arzt"],
+  mechanic: ["méca", "meca", "garage", "mécano", "mechanic", "mecánico", "mecanico", "taller", "mechaniker", "werkstatt"],
+  taxi: ["taxi", "uber", "chauffeur", "cab driver", "bus driver", "conductor", "fahrer"],
+  lawyer: ["avocat", "juge", "tribunal", "justice", "lawyer", "attorney", "judge", "abogado", "juez", "anwalt", "richter", "gericht"],
+  journalist: ["journal", "weazel", "presse", "reporter", "periodista", "prensa"],
+  realtor: ["immobilier", "agent immo", "real estate", "realtor", "inmobiliaria", "immobilienmakler", "makler"],
+  dealer: ["concession", "vendeur auto", "dealership", "car dealer", "concesionario", "autohändler", "autohaendler"],
 };
 
 const GANG_KEYWORDS: Record<string, string[]> = {
@@ -23,8 +31,15 @@ const GANG_KEYWORDS: Record<string, string[]> = {
   Vagos: ["vagos"],
   Families: ["families", "grove"],
   Mafia: ["mafia", "cartel"],
-  Bikers: ["biker", "moto", "lost mc"],
+  Bikers: ["biker", "moto", "lost mc", "motorrad", "motero"],
 };
+
+const LANGUAGE_HINTS: Array<{ test: RegExp; language: ServerLanguage }> = [
+  { test: /\b(english|anglais|inglés|ingles|englisch)\b/, language: "en" },
+  { test: /\b(español|espanol|espagnol|spanish|spanisch)\b/, language: "es" },
+  { test: /\b(deutsch|allemand|german|alemán|aleman)\b/, language: "de" },
+  { test: /\b(français|francais|french|francés|frances|französisch)\b/, language: "fr" },
+];
 
 function pick<T>(arr: readonly T[], seed: number) {
   return arr[Math.abs(seed) % arr.length];
@@ -47,63 +62,47 @@ const NAMES = [
   "Côte Ouest RP",
 ];
 
-const TAGLINES = [
-  "Une ville qui vit, même quand tu dors.",
-  "Chaque personnage a une histoire.",
-  "Pas de script. Juste ta ville.",
-  "Le RP, sans la prise de tête.",
-];
-
-/** Produit la fiche du serveur à partir du prompt et des réponses. */
-export async function generateSpec(prompt: string, answers: WizardAnswers): Promise<ServerSpec> {
+/** Produit la fiche du serveur à partir du prompt et des réponses, dans la langue du site. */
+export async function generateSpec(prompt: string, answers: WizardAnswers, locale: Locale, t: Dictionary): Promise<ServerSpec> {
   await wait(900);
   const text = prompt.toLowerCase();
   const seed = hash(prompt);
+  const names = t.services.jobs;
 
-  const jobs = Object.entries(JOB_KEYWORDS)
-    .filter(([, kws]) => kws.some((k) => text.includes(k)))
-    .map(([job]) => job);
-  const baseJobs = ["Police", "EMS", "Mécano"];
-  const mergedJobs = Array.from(new Set([...baseJobs, ...jobs]));
+  const jobs = (Object.keys(JOB_KEYWORDS) as JobKey[]).filter((job) => JOB_KEYWORDS[job].some((k) => text.includes(k)));
+  const mergedJobs = Array.from(new Set<JobKey>(["police", "ems", "mechanic", ...jobs])).map((job) => names[job]);
 
   const gangs = Object.entries(GANG_KEYWORDS)
     .filter(([, kws]) => kws.some((k) => text.includes(k)))
     .map(([g]) => g);
-  const wantsGangs = /gang|rue|trafic|cartel|mafia|territoire/.test(text);
+  const wantsGangs = /gang|\brue\b|trafic|cartel|mafia|territoire|street|traffick|\bdrugs?\b|territory|calle|tráfico|trafico|territorio|straße|strasse|revier/.test(text);
   const mergedGangs = gangs.length ? gangs : wantsGangs ? ["Ballas", "Vagos", "Families"] : ["Ballas", "Vagos"];
 
-  const style =
-    answers.seriousness ??
-    (/hardcore|strict|sérieux|serieux/.test(text) ? "hardcore" : /semi|détendu|detendu|débutant/.test(text) ? "semi" : "semi");
+  const style = answers.seriousness ?? (/hardcore|strict|sérieux|serieux|serious|serio|ernst/.test(text) ? "hardcore" : "semi");
 
   const economy =
     answers.economy ??
-    (/hardcore|lente|très lente/.test(text) ? "hardcore" : /rapide|arcade|fun/.test(text) ? "rapide" : "realiste");
+    (/hardcore|lente|très lente|\bslow\b|lenta|langsam/.test(text) ? "hardcore" : /rapide|arcade|\bfun\b|\bfast\b|quick|rápida|rapida|schnell/.test(text) ? "rapide" : "realiste");
 
   const players =
     answers.players ??
-    ((text.match(/(32|64|128|256)\s*(joueurs|slots|places)?/)?.[1] as unknown as 32 | 64 | 128 | 256) || 64);
+    ((text.match(/(32|64|128|256)\s*(joueurs|slots|places|players|jugadores|spieler)?/)?.[1] as unknown as 32 | 64 | 128 | 256) || 64);
 
-  const whitelist = answers.whitelist ?? (/whitelist/.test(text) && !/pas de whitelist|sans whitelist/.test(text));
+  const whitelist =
+    answers.whitelist ?? (/whitelist/.test(text) && !/pas de whitelist|sans whitelist|no whitelist|without whitelist|sin whitelist|ohne whitelist|keine whitelist/.test(text));
   const discord = answers.discord ?? true;
 
-  const options: string[] = [
-    whitelist ? "Whitelist avec candidatures" : "Accès libre",
-    discord ? "Discord généré automatiquement" : "Sans Discord",
-    "Immobilier et location",
-    "Braquages (épicerie, bijouterie, banque)",
-    "Site web du serveur",
-    "Sauvegardes et réparation automatique",
-  ];
-  if (/course|illégal|illegal|street/.test(text)) options.push("Courses illégales");
-  if (/club|boîte|boite|business/.test(text)) options.push("Business de joueurs");
-  if (/mort permanente|permadeath/.test(text)) options.push("Mort permanente");
+  const o = t.services.options;
+  const options: string[] = [whitelist ? o.whitelist : o.open, discord ? o.discord : o.noDiscord, o.housing, o.heists, o.site, o.backups];
+  if (/course|illégal|illegal|street|\brace|racing|carrera|rennen/.test(text)) options.push(o.races);
+  if (/club|boîte|boite|business|negocio|unternehmen|geschäft|geschaeft/.test(text)) options.push(o.business);
+  if (/mort permanente|permadeath|permanent death|muerte permanente|permanenter tod/.test(text)) options.push(o.permadeath);
 
-  const language = /english|anglais|\ben\b/.test(text) ? "Anglais" : "Français";
+  const language = LANGUAGE_HINTS.find((h) => h.test.test(text))?.language ?? locale;
 
   return {
     name: pick(NAMES, seed),
-    tagline: pick(TAGLINES, seed >> 3),
+    tagline: pick(t.services.taglines, seed >> 3),
     language,
     style,
     players,
@@ -114,103 +113,88 @@ export async function generateSpec(prompt: string, answers: WizardAnswers): Prom
   };
 }
 
-const AREAS: Array<{ test: RegExp; area: string; build: (req: string) => Omit<AiProposal, "id" | "request" | "area"> }> = [
+type AreaKey = keyof Dictionary["services"]["proposals"]["areas"];
+type Draft = Omit<AiProposal, "id" | "request" | "area">;
+
+interface Ctx {
+  locale: Locale;
+  t: Dictionary;
+}
+
+const AREAS: Array<{ test: RegExp; area: AreaKey; build: (req: string, ctx: Ctx) => Draft }> = [
   {
-    test: /salaire|paie|paye/,
-    area: "Jobs",
-    build: (req) => {
-      const divide = req.match(/divis\w*\s+.*?par\s+(\d+)/i)?.[1];
-      const times = req.match(/multipli\w*\s+.*?par\s+(\d+)/i)?.[1];
-      const job = Object.keys(JOB_KEYWORDS).find((j) => JOB_KEYWORDS[j].some((k) => req.toLowerCase().includes(k))) ?? "Police";
-      const op = divide ? `divisé par ${divide}` : times ? `multiplié par ${times}` : "ajusté";
+    test: /salaire|paie|paye|salary|salaries|wage|paycheck|\bpay\b|sueldo|salario|gehalt|gehälter|lohn|löhne/,
+    area: "jobs",
+    build: (req, { locale, t }) => {
+      const lower = req.toLowerCase();
+      const divide =
+        lower.match(/(?:divis[\wé]*|divide\w*|teil\w*)\s.*?(?:par|by|entre|durch)\s+(\d+)/)?.[1] ?? (/halve|in half|halbier|a la mitad|por la mitad|moitié/.test(lower) ? "2" : undefined);
+      const times = lower.match(/(?:multipli[\wé]*|multiply\w*|multipliz\w*)\s.*?(?:par|by|por|mit)\s+(\d+)/)?.[1] ?? (/double|doppel|verdopp|duplica/.test(lower) ? "2" : undefined);
+      const jobKey = (Object.keys(JOB_KEYWORDS) as JobKey[]).find((j) => JOB_KEYWORDS[j].some((k) => lower.includes(k))) ?? "police";
+      const job = t.services.jobs[jobKey];
+      const p = t.services.proposals.salary;
+      const op = divide ? fmt(p.dividedBy, { n: divide }) : times ? fmt(p.multipliedBy, { n: times }) : p.adjusted;
+      const to = divide ? Math.round(2400 / Number(divide)) : times ? 2400 * Number(times) : 1800;
       return {
-        title: `Salaire ${job} ${op}`,
-        summary: `Le salaire des membres du job ${job} sera ${op} pour tous les grades. Les paies déjà versées ne changent pas.`,
-        changes: [
-          `Salaire de base ${job} : ${divide ? `2 400 € → ${Math.round(2400 / Number(divide))} €` : times ? `2 400 € → ${2400 * Number(times)} €` : "2 400 € → 1 800 €"} par heure`,
-          "Grades intermédiaires et supérieurs recalculés proportionnellement",
-          "Annonce automatique dans le salon Discord du job",
-        ],
+        title: fmt(p.title, { job, op }),
+        summary: fmt(p.summary, { job, op }),
+        changes: [fmt(p.base, { job, from: formatGameMoney(2400, locale), to: formatGameMoney(to, locale) }), p.grades, p.announce],
         impact: "moyen",
       };
     },
   },
   {
-    test: /braquage|heist|cambriol/,
-    area: "Gameplay",
-    build: (req) => {
-      const min = req.match(/(\d+)\s*polic/i)?.[1] ?? "4";
-      const target = /banque|bank/i.test(req) ? "banque" : /bijou/i.test(req) ? "bijouterie" : "épicerie";
+    test: /braquage|heist|cambriol|robbery|\brob\b|atraco|asalto|überfall|ueberfall|raub/,
+    area: "gameplay",
+    build: (req, { t }) => {
+      const min = req.match(/(\d+)\s*(?:polic|cops?|flics|polizist)/i)?.[1] ?? "4";
+      const p = t.services.proposals.heist;
+      const target = /banque|bank|banco/i.test(req) ? p.bank : /bijou|jewel|joyer|juwel/i.test(req) ? p.jewelry : p.store;
       return {
-        title: `Nouveau braquage de ${target}`,
-        summary: `Un braquage de ${target} sera disponible, uniquement quand au moins ${min} policiers sont en service. Le butin et le temps de recharge sont équilibrés selon ton économie.`,
-        changes: [
-          `Braquage de ${target} activé`,
-          `Condition : ${min} policiers minimum en service`,
-          "Butin : 45 000 à 80 000 € selon la difficulté",
-          "Recharge : 2 heures entre deux braquages",
-          "Alerte envoyée à la police au déclenchement",
-        ],
+        title: fmt(p.title, { target }),
+        summary: fmt(p.summary, { target, min }),
+        changes: [fmt(p.enabled, { target }), fmt(p.condition, { min }), p.loot, p.cooldown, p.alert],
         impact: "important",
       };
     },
   },
   {
-    test: /véhicule|vehicule|voiture|moto|concession/,
-    area: "Véhicules",
-    build: () => ({
-      title: "Catalogue de véhicules mis à jour",
-      summary: "Le concessionnaire proposera les véhicules demandés, avec des prix cohérents avec ton économie.",
-      changes: ["Nouveaux véhicules ajoutés au concessionnaire", "Prix calculés selon le mode d'économie", "Garages mis à jour"],
-      impact: "faible",
-    }),
+    test: /prix|loyer|taxe|coût|cout|price|\brent\b|\btax|\bcost|precio|alquiler|impuesto|preis|miete|steuer/,
+    area: "economy",
+    build: (_, { t }) => ({ ...t.services.proposals.prices, impact: "moyen" }),
   },
   {
-    test: /prix|loyer|taxe|coût|cout/,
-    area: "Économie",
-    build: () => ({
-      title: "Ajustement des prix",
-      summary: "Les prix concernés seront ajustés. Les transactions déjà effectuées ne changent pas.",
-      changes: ["Prix mis à jour dans les commerces concernés", "Équilibrage vérifié par l'IA", "Changement visible immédiatement en jeu"],
-      impact: "moyen",
-    }),
+    test: /véhicule|vehicule|voiture|\bmoto\b|concession|vehicle|\bcars?\b|\bbikes?\b|dealership|vehículo|vehiculo|coche|motocicleta|fahrzeug|\bautos?\b|motorrad|händler|haendler/,
+    area: "vehicles",
+    build: (_, { t }) => ({ ...t.services.proposals.vehicles, impact: "faible" }),
   },
   {
-    test: /whitelist|candidature/,
-    area: "Paramètres",
-    build: () => ({
-      title: "Whitelist modifiée",
-      summary: "Les règles d'accès à ton serveur seront mises à jour et synchronisées avec Discord.",
-      changes: ["Règles d'accès mises à jour", "Formulaire de candidature Discord ajusté", "Rôles synchronisés"],
-      impact: "moyen",
-    }),
+    test: /whitelist|candidature|application|candidatura|bewerbung/,
+    area: "settings",
+    build: (_, { t }) => ({ ...t.services.proposals.whitelist, impact: "moyen" }),
   },
   {
-    test: /job|métier|metier|faction|ajoute/,
-    area: "Jobs",
-    build: () => ({
-      title: "Nouveau job créé",
-      summary: "Le métier demandé sera ajouté avec ses grades, son salaire et son lieu de travail. Les joueurs pourront y postuler dès la publication.",
-      changes: ["Job créé avec 4 grades", "Salaire de base : 1 600 € par heure", "Lieu de travail placé sur la carte", "Rôle Discord dédié"],
-      impact: "moyen",
-    }),
+    test: /\bjob|métier|metier|faction|ajoute|\badd\b|añade|anade|trabajo|hinzu|beruf|oficio/,
+    area: "jobs",
+    build: (_, { t }) => ({ ...t.services.proposals.job, impact: "moyen" }),
   },
 ];
 
 let counter = 0;
 
-/** Répond à une demande de modification en langage naturel. */
-export async function proposeChange(request: string): Promise<AiProposal> {
+/** Répond à une demande de modification en langage naturel, dans la langue du site. */
+export async function proposeChange(request: string, locale: Locale, t: Dictionary): Promise<AiProposal> {
   await wait(1200 + Math.random() * 600);
+  const ctx: Ctx = { locale, t };
   const match = AREAS.find((a) => a.test.test(request.toLowerCase()));
-  const base = match
-    ? match.build(request)
+  const base: Draft = match
+    ? match.build(request, ctx)
     : {
-        title: "Modification préparée",
-        summary: `J'ai préparé la modification suivante : « ${request.trim()} ». Vérifie le résumé, puis publie pour l'appliquer sur ton serveur.`,
-        changes: ["Configuration mise à jour", "Vérification automatique des conflits", "Sauvegarde créée avant publication"],
-        impact: "faible" as const,
+        title: t.services.proposals.generic.title,
+        summary: fmt(t.services.proposals.generic.summary, { request: request.trim() }),
+        changes: t.services.proposals.generic.changes,
+        impact: "faible",
       };
   counter += 1;
-  return { id: `prop-${Date.now()}-${counter}`, request, area: match?.area ?? "Général", ...base };
+  return { id: `prop-${Date.now()}-${counter}`, request, area: t.services.proposals.areas[match?.area ?? "general"], ...base };
 }

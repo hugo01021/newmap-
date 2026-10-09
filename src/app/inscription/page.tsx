@@ -1,11 +1,12 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { AuthPanel } from "@/components/auth/AuthPanel";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Inscription",
-  description: "Crée ton compte ServCraft en trente secondes, puis décris ton serveur.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.auth.signup.tag, description: t.auth.signup.text };
+}
 
 export default function InscriptionPage() {
   return (

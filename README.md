@@ -41,6 +41,17 @@ Deux types d'images dans `public/images/` :
 
 Le fichier `src/lib/data/images.ts` liste chaque emplacement avec son chemin, son texte alternatif et, si besoin, son point de cadrage. Pour changer une image, remplace le fichier en gardant son nom ou modifie le chemin dans ce fichier.
 
+## Langues
+
+Le site existe en français (par défaut), anglais, espagnol et allemand. Le visiteur choisit sa langue avec la petite planète en haut à droite ; le choix est mémorisé dans le cookie `servcraft_locale` et tout le site se traduit (pages, parcours de création, guide, panel, page de paiement Stripe).
+
+- `src/lib/i18n/config.ts` : la liste des langues et le nom du cookie.
+- `src/lib/i18n/dictionaries/fr.ts` : le dictionnaire de référence. Les trois autres (`en.ts`, `es.ts`, `de.ts`) doivent avoir exactement les mêmes clés, sinon la compilation échoue.
+- `src/lib/i18n/server.ts` : `getI18n()` pour les pages serveur ; `src/lib/i18n/client.tsx` : `useT()` / `useLocale()` pour les composants.
+- Pour ajouter une langue : ajoute son code dans `config.ts`, crée son dictionnaire et référence-le dans `dictionaries/index.ts`.
+
+Les écrans produit (`public/images/*.jpg` générés par `scripts/screens.mjs`) restent en français. Les noms des produits Stripe aussi.
+
 ## Paiement Stripe
 
 Le paiement est réel dès que `STRIPE_SECRET_KEY` est renseignée (fichier `.env.local` en local, « Environment Variables » dans Vercel). Sans clé, le paiement est simulé.

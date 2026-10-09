@@ -1,6 +1,7 @@
 import "server-only";
 import Stripe from "stripe";
-import { plans, type Plan } from "./data/pricing";
+import { planBaseById, type PlanBase } from "./data/pricing";
+import { fr } from "./i18n/dictionaries/fr";
 
 /** Vrai paiement activé dès qu'une clé secrète Stripe est fournie. Sinon, paiement simulé. */
 export const stripeEnabled = Boolean(process.env.STRIPE_SECRET_KEY);
@@ -14,19 +15,20 @@ export function stripe(): Stripe {
 }
 
 /** Clé de recherche d'un tarif Stripe pour une offre (créé à la première utilisation). */
-const lookupKey = (plan: Plan) => `servcraft_${plan.id}_v1`;
+const lookupKey = (plan: PlanBase) => `servcraft_${plan.id}_v1`;
 
 /**
  * Retrouve (ou crée) le produit et le tarif mensuel Stripe d'une offre.
  * Idempotent : le tarif est identifié par sa clé de recherche.
  */
-export async function ensurePrice(plan: Plan): Promise<string> {
+export async function ensurePrice(plan: PlanBase): Promise<string> {
   const s = stripe();
   const existing = await s.prices.list({ lookup_keys: [lookupKey(plan)], active: true, limit: 1 });
   if (existing.data[0]) return existing.data[0].id;
 
   const product = await s.products.create({
-    name: `ServCraft · ${plan.name}`,
+    // Les produits Stripe gardent leur nom français, quelle que soit la langue du site.
+    name: `ServCraft · ${fr.pricing.plans[plan.id].name}`,
     description: `Serveur GTA V RP jusqu'à ${plan.players} joueurs, création par IA, Discord, site web, panel et sauvegardes inclus.`,
     metadata: { servcraft_plan: plan.id, players: String(plan.players) },
   });
@@ -41,4 +43,4 @@ export async function ensurePrice(plan: Plan): Promise<string> {
   return price.id;
 }
 
-export const planById = (id: string) => plans.find((p) => p.id === id);
+export const planById = planBaseById;

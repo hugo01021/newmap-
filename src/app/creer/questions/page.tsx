@@ -4,7 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useWizard } from "@/lib/wizard-store";
-import type { WizardAnswers } from "@/lib/types";
+import { fmt } from "@/lib/i18n/config";
+import { useLocale } from "@/lib/i18n/client";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+import type { Locale } from "@/lib/i18n/config";
+import type { PlayerCount, WizardAnswers } from "@/lib/types";
 import { StepHeading } from "@/components/wizard/StepHeading";
 import { ChoiceCard } from "@/components/ui/ChoiceCard";
 import { PillButton } from "@/components/ui/PillButton";
@@ -22,66 +26,65 @@ interface Question {
   cols: 2 | 3 | 4;
 }
 
-const questions: Question[] = [
-  {
-    key: "seriousness",
-    title: "Quel niveau de sérieux ?",
-    text: "Ça change les règles, le ton du Discord et la façon dont l'IA équilibre le jeu.",
-    cols: 3,
-    options: [
-      { value: "casual", label: "Casual", description: "On joue pour s'amuser. Règles légères, accès rapide, beaucoup d'action." },
-      { value: "semi", label: "Semi-RP", description: "Un bon équilibre : on respecte le RP, mais on reste accessible." },
-      { value: "hardcore", label: "Hardcore RP", description: "Immersion totale. Règles strictes, conséquences réelles, whitelist conseillée." },
-    ],
-  },
-  {
-    key: "players",
-    title: "Combien de joueurs ?",
-    text: "Tu pourras augmenter plus tard. Commence avec ce qui te semble réaliste pour ton lancement.",
-    cols: 4,
-    options: [
-      { value: 32, label: "32", description: `Une communauté intime · ${formatEuro(planForPlayers(32).monthly)} / mois` },
-      { value: 64, label: "64", description: `Le format classique · ${formatEuro(planForPlayers(64).monthly)} / mois` },
-      { value: 128, label: "128", description: `Une vraie ville animée · ${formatEuro(planForPlayers(128).monthly)} / mois` },
-      { value: 256, label: "256", description: `Grande échelle · ${formatEuro(planForPlayers(256).monthly)} / mois` },
-    ],
-  },
-  {
-    key: "economy",
-    title: "Quelle économie ?",
-    text: "La vitesse à laquelle on gagne de l'argent et le prix des choses.",
-    cols: 3,
-    options: [
-      { value: "rapide", label: "Rapide", description: "Les joueurs achètent une voiture le premier soir." },
-      { value: "realiste", label: "Réaliste", description: "Il faut travailler quelques jours pour s'installer." },
-      { value: "hardcore", label: "Hardcore", description: "Chaque euro compte. Posséder une maison est un accomplissement." },
-    ],
-  },
-  {
-    key: "whitelist",
-    title: "Whitelist ?",
-    text: "Avec une whitelist, les joueurs candidatent sur Discord avant de pouvoir se connecter.",
-    cols: 2,
-    options: [
-      { value: true, label: "Oui", description: "Une communauté filtrée, un RP plus propre." },
-      { value: false, label: "Non", description: "Tout le monde peut rejoindre immédiatement." },
-    ],
-  },
-  {
-    key: "discord",
-    title: "Discord automatique ?",
-    text: "On génère ton Discord complet : salons, rôles, règlement, candidatures. Il reste synchronisé avec le serveur.",
-    cols: 2,
-    options: [
-      { value: true, label: "Oui", description: "Tout prêt, en même temps que le serveur." },
-      { value: false, label: "Non", description: "Tu as déjà ton Discord ou tu préfères sans." },
-    ],
-  },
-];
+function buildQuestions(t: Dictionary, locale: Locale): Question[] {
+  const q = t.questions;
+  const players = ([32, 64, 128, 256] as PlayerCount[]).map((n) => ({
+    value: n,
+    label: String(n),
+    description: `${q.players[`p${n}` as "p32" | "p64" | "p128" | "p256"]} · ${formatEuro(planForPlayers(n).monthly, locale)} ${t.common.perMonth}`,
+  }));
+  return [
+    {
+      key: "seriousness",
+      title: q.seriousness.title,
+      text: q.seriousness.text,
+      cols: 3,
+      options: [
+        { value: "casual", label: t.labels.seriousness.casual, description: q.seriousness.casual },
+        { value: "semi", label: t.labels.seriousness.semi, description: q.seriousness.semi },
+        { value: "hardcore", label: t.labels.seriousness.hardcore, description: q.seriousness.hardcore },
+      ],
+    },
+    { key: "players", title: q.players.title, text: q.players.text, cols: 4, options: players },
+    {
+      key: "economy",
+      title: q.economy.title,
+      text: q.economy.text,
+      cols: 3,
+      options: [
+        { value: "rapide", label: t.labels.economy.rapide, description: q.economy.rapide },
+        { value: "realiste", label: t.labels.economy.realiste, description: q.economy.realiste },
+        { value: "hardcore", label: t.labels.economy.hardcore, description: q.economy.hardcore },
+      ],
+    },
+    {
+      key: "whitelist",
+      title: q.whitelist.title,
+      text: q.whitelist.text,
+      cols: 2,
+      options: [
+        { value: true, label: q.yes, description: q.whitelist.yes },
+        { value: false, label: q.no, description: q.whitelist.no },
+      ],
+    },
+    {
+      key: "discord",
+      title: q.discord.title,
+      text: q.discord.text,
+      cols: 2,
+      options: [
+        { value: true, label: q.yes, description: q.discord.yes },
+        { value: false, label: q.no, description: q.discord.no },
+      ],
+    },
+  ];
+}
 
 export default function QuestionsPage() {
+  const { t, locale } = useLocale();
   const router = useRouter();
   const { state, hydrated, answer } = useWizard();
+  const questions = useMemo(() => buildQuestions(t, locale), [t, locale]);
   const [manualIndex, setI] = useState<number | null>(null);
   const [dir, setDir] = useState(1);
   // Sans navigation manuelle, on reprend à la première question sans réponse.
@@ -95,7 +98,7 @@ export default function QuestionsPage() {
   const q = questions[i];
   const current = state.answers[q.key];
   const isLast = i === questions.length - 1;
-  const answered = useMemo(() => questions.filter((qq) => state.answers[qq.key] !== undefined).length, [state.answers]);
+  const answered = useMemo(() => questions.filter((qq) => state.answers[qq.key] !== undefined).length, [questions, state.answers]);
 
   const goTo = (k: number) => {
     setDir(k < i ? -1 : 1);
@@ -118,14 +121,14 @@ export default function QuestionsPage() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center">
-      <div className="mb-8 flex items-center gap-2" aria-label={`Question ${i + 1} sur ${questions.length}`}>
+      <div className="mb-8 flex items-center gap-2" aria-label={fmt(t.questions.aria, { i: i + 1, n: questions.length })}>
         {questions.map((qq, k) => (
           <button
             key={qq.key}
             type="button"
             onClick={() => goTo(k)}
             disabled={k > answered}
-            aria-label={`Question ${k + 1}`}
+            aria-label={fmt(t.questions.one, { i: k + 1 })}
             className={cn(
               "h-1.5 rounded-full transition-all duration-500",
               k === i ? "w-8 bg-white" : state.answers[qq.key] !== undefined ? "w-3 bg-white/60" : "w-3 bg-white/15",
@@ -144,7 +147,7 @@ export default function QuestionsPage() {
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-5xl"
         >
-          <StepHeading tag={`Question ${i + 1} / ${questions.length}`} title={q.title} text={q.text} />
+          <StepHeading tag={fmt(t.questions.tag, { i: i + 1, n: questions.length })} title={q.title} text={q.text} />
           <div
             className={cn(
               "mt-12 grid gap-3 sm:gap-4",
@@ -168,7 +171,7 @@ export default function QuestionsPage() {
 
       <div className="mt-10 flex w-full max-w-5xl items-center justify-between">
         <PillButton variant="ghost" onClick={back} icon={<ArrowLeft width={16} height={16} />}>
-          Retour
+          {t.common.back}
         </PillButton>
         {current !== undefined && (
           <PillButton
@@ -176,7 +179,7 @@ export default function QuestionsPage() {
             onClick={() => (isLast ? router.push("/creer/recap") : goTo(i + 1))}
             iconRight={<ArrowRight width={16} height={16} />}
           >
-            {isLast ? "Voir le récapitulatif" : "Suivant"}
+            {isLast ? t.questions.seeRecap : t.common.next}
           </PillButton>
         )}
       </div>

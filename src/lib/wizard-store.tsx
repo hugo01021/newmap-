@@ -1,7 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
-import type { Account, Onboarding, PlanId, ServerSpec, WizardAnswers, WizardState } from "./types";
+import { isServerLanguage, type Account, type Onboarding, type PlanId, type ServerLanguage, type ServerSpec, type WizardAnswers, type WizardState } from "./types";
+import type { Locale } from "./i18n/config";
+import type { Dictionary } from "./i18n/dictionaries";
 
 const STORAGE_KEY = "servcraft:wizard:v1";
 
@@ -33,11 +35,26 @@ type Action =
   | { type: "newServer" }
   | { type: "reset" };
 
+/** Les fiches enregistrées avant le site multilingue stockaient la langue en toutes lettres. */
+const LEGACY_LANGUAGES: Record<string, ServerLanguage> = { Français: "fr", French: "fr", Anglais: "en", English: "en" };
+
+function normalizeSpec(spec: ServerSpec | null | undefined): ServerSpec | null {
+  if (!spec) return null;
+  const raw: unknown = spec.language;
+  const language = isServerLanguage(raw) ? raw : LEGACY_LANGUAGES[String(raw)] ?? "fr";
+  return { ...spec, language };
+}
+
 function reducer(state: WizardState, action: Action): WizardState {
   switch (action.type) {
     case "hydrate":
       // Les parcours sauvegardés avant l'ajout d'un champ gardent des valeurs par défaut.
-      return { ...initialState, ...action.state, onboarding: { ...initialState.onboarding, ...(action.state.onboarding ?? {}) } };
+      return {
+        ...initialState,
+        ...action.state,
+        spec: normalizeSpec(action.state.spec),
+        onboarding: { ...initialState.onboarding, ...(action.state.onboarding ?? {}) },
+      };
     case "setPrompt":
       // Un nouveau prompt invalide la fiche générée.
       return { ...state, prompt: action.prompt, spec: state.prompt === action.prompt ? state.spec : null };
@@ -140,19 +157,18 @@ export function useWizard() {
 }
 
 /** Fiche de démonstration utilisée quand on ouvre le panel sans avoir créé de serveur. */
-export const demoSpec: ServerSpec = {
-  name: "Los Santos Legacy",
-  tagline: "Une ville qui vit, même quand tu dors.",
-  language: "Français",
-  style: "semi",
-  players: 64,
-  economy: "realiste",
-  jobs: ["Police", "EMS", "Mécano", "Taxi"],
-  gangs: ["Ballas", "Vagos"],
-  options: ["Whitelist avec candidatures", "Discord généré automatiquement", "Immobilier et location", "Braquages"],
-};
-
-export const labels = {
-  seriousness: { casual: "Casual", semi: "Semi-RP", hardcore: "Hardcore RP" },
-  economy: { rapide: "Rapide", realiste: "Réaliste", hardcore: "Hardcore" },
-} as const;
+export function demoSpec(locale: Locale, t: Dictionary): ServerSpec {
+  const j = t.services.jobs;
+  const o = t.services.options;
+  return {
+    name: "Los Santos Legacy",
+    tagline: t.services.taglines[0],
+    language: locale,
+    style: "semi",
+    players: 64,
+    economy: "realiste",
+    jobs: [j.police, j.ems, j.mechanic, j.taxi],
+    gangs: ["Ballas", "Vagos"],
+    options: [o.whitelist, o.discord, o.housing, o.heists],
+  };
+}

@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/cn";
-import { formatEuro, plans, type Plan } from "@/lib/data/pricing";
+import { formatEuro, localizedPlans, type Plan } from "@/lib/data/pricing";
+import { useLocale } from "@/lib/i18n/client";
 import type { PlanId } from "@/lib/types";
 import { Check } from "@/components/ui/Icons";
 import { PillButton } from "@/components/ui/PillButton";
@@ -20,6 +21,7 @@ interface PlanCardProps {
 }
 
 export function PlanCard({ plan, selected, onSelect, href, compact, badge }: PlanCardProps) {
+  const { t, locale } = useLocale();
   const emphasized = selected ?? plan.highlighted;
   return (
     <div
@@ -36,18 +38,18 @@ export function PlanCard({ plan, selected, onSelect, href, compact, badge }: Pla
     >
       <div className="flex items-start justify-between gap-3">
         <h3 className="whitespace-nowrap text-2xl font-bold tracking-tight">{plan.name}</h3>
-        {plan.highlighted && !onSelect && <Tag>Populaire</Tag>}
-        {onSelect && selected && <Tag>Sélectionné</Tag>}
+        {plan.highlighted && !onSelect && <Tag>{t.pricing.popular}</Tag>}
+        {onSelect && selected && <Tag>{t.pricing.selected}</Tag>}
         {onSelect && !selected && badge && <Tag tone="ghost">{badge}</Tag>}
       </div>
       <p className="mt-2 text-sm text-muted">{plan.tagline}</p>
 
       <div className="mt-8 border-t border-line pt-6">
         <div className="flex items-baseline gap-2">
-          <span className="display text-4xl sm:text-5xl">{formatEuro(plan.monthly)}</span>
-          <span className="text-sm text-muted">/ mois</span>
+          <span className="display text-4xl sm:text-5xl">{formatEuro(plan.monthly, locale)}</span>
+          <span className="text-sm text-muted">{t.common.perMonth}</span>
         </div>
-        <p className="mt-2 text-sm text-muted">Sans frais de mise en place · sans engagement</p>
+        <p className="mt-2 text-sm text-muted">{t.pricing.noSetup}</p>
       </div>
 
       {!compact && (
@@ -73,12 +75,14 @@ export function PlanCard({ plan, selected, onSelect, href, compact, badge }: Pla
 }
 
 export function Pricing({ withHeading = true }: { withHeading?: boolean }) {
+  const { t } = useLocale();
+  const plans = localizedPlans(t);
   return (
     <section className="border-t border-line bg-ink" id="tarifs">
       <div className="container-x py-24 sm:py-32">
         {withHeading && (
           <Reveal>
-            <SectionHeading tag="Tarifs" title="Un prix clair. Un serveur complet." text="Un seul abonnement mensuel, calculé sur le nombre de joueurs. Création par IA, Discord, site web, panel et sauvegardes sont inclus dans toutes les offres." />
+            <SectionHeading tag={t.pricing.tag} title={t.pricing.title} text={t.pricing.text} />
           </Reveal>
         )}
         <div className={cn("grid gap-4 md:grid-cols-2 xl:grid-cols-4", withHeading && "mt-16")}>
@@ -88,7 +92,7 @@ export function Pricing({ withHeading = true }: { withHeading?: boolean }) {
             </Reveal>
           ))}
         </div>
-        <p className="mt-8 text-sm text-muted">Prix TTC. Pas de frais de mise en place, pas d&apos;engagement : résiliation en un clic, à tout moment.</p>
+        <p className="mt-8 text-sm text-muted">{t.pricing.note}</p>
       </div>
     </section>
   );

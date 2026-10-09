@@ -3,22 +3,27 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
+import { fmt } from "@/lib/i18n/config";
+import { useLocale } from "@/lib/i18n/client";
 import { demoSpec, useWizard } from "@/lib/wizard-store";
-import { defaultHistory, type HistoryItem } from "@/lib/services/panel";
+import { defaultPanelData, type HistoryItem } from "@/lib/services/panel";
 import type { AiProposal } from "@/lib/types";
 import { Logo } from "@/components/layout/Logo";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { PanelChat } from "@/components/panel/PanelChat";
 import { PanelTabContent, tabs, type Tab } from "@/components/panel/PanelTabs";
 import { Discord, Users } from "@/components/ui/Icons";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
 export default function PanelPage() {
+  const { t, locale } = useLocale();
+  const p = t.panel;
   const { state, hydrated, newServer } = useWizard();
-  const [tab, setTab] = useState<Tab>("Vue d'ensemble");
-  const [history, setHistory] = useState<HistoryItem[]>(defaultHistory);
+  const [tab, setTab] = useState<Tab>("overview");
+  const [history, setHistory] = useState<HistoryItem[]>(() => defaultPanelData(t).history);
   const [online, setOnline] = useState(27);
 
-  const spec = state.spec && state.built ? state.spec : demoSpec;
+  const spec = useMemo(() => (state.spec && state.built ? state.spec : demoSpec(locale, t)), [state.spec, state.built, locale, t]);
   const isDemo = !(state.spec && state.built);
   const ob = state.onboarding;
   const remaining = isDemo ? 0 : 3 - [ob.cfxDone, ob.discordBuilt, ob.playDone].filter(Boolean).length;
@@ -31,13 +36,13 @@ export default function PanelPage() {
   }, [spec.players]);
 
   const log = (item: Omit<HistoryItem, "id" | "date">) =>
-    setHistory((h) => [{ id: `h-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, date: "À l'instant", ...item }, ...h]);
+    setHistory((h) => [{ id: `h-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, date: p.backups.justNow, ...item }, ...h]);
 
-  const onPublished = (p: AiProposal) => log({ title: p.title, author: "IA ServCraft", area: p.area });
+  const onPublished = (prop: AiProposal) => log({ title: prop.title, author: p.data.ai, area: prop.area });
 
   return (
     <div className="min-h-svh bg-ink">
-      <ProgressBar value={1} className="fixed inset-x-0 top-0 z-50" label="Étape 7 sur 7" />
+      <ProgressBar value={1} className="fixed inset-x-0 top-0 z-50" label={p.stepAria} />
 
       {/* En-tête du panel */}
       <header className="border-b border-line">
@@ -46,19 +51,20 @@ export default function PanelPage() {
             <Logo />
             <span className="hidden items-center gap-3 sm:flex">
               <span className="h-4 w-px bg-line-2" />
-              <span className="label text-muted">Panel</span>
+              <span className="label text-muted">{p.label}</span>
             </span>
           </div>
           <div className="flex items-center gap-4 text-sm">
-            {isDemo && <span className="label hidden text-muted md:inline">Mode démonstration</span>}
+            {isDemo && <span className="label hidden text-muted md:inline">{p.demo}</span>}
             {!isDemo && (
               <Link href="/creer/mise-en-ligne" className="label text-white/80 transition-opacity hover:opacity-60">
-                Guide
+                {p.guide}
               </Link>
             )}
             <Link href="/" className="label text-white/80 transition-opacity hover:opacity-60">
-              Accueil
+              {t.common.home}
             </Link>
+            <LanguageSwitcher />
             {hydrated && state.account && (
               <span className="hidden h-8 w-8 items-center justify-center rounded-full bg-white text-xs font-bold text-ink sm:flex" title={state.account.email}>
                 {state.account.displayName.slice(0, 1).toUpperCase()}
@@ -73,14 +79,14 @@ export default function PanelPage() {
                 <span className="pulse-dot absolute inset-0 rounded-full bg-white/60" />
                 <span className="relative h-2.5 w-2.5 rounded-full bg-white" />
               </span>
-              <span className="label text-white">En ligne</span>
+              <span className="label text-white">{p.online}</span>
             </div>
             <h1 className="display mt-3 text-4xl sm:text-5xl">{spec.name}</h1>
           </div>
           <dl className="flex gap-8">
             <div>
               <dt className="label flex items-center gap-1.5 text-muted">
-                <Users width={13} height={13} /> Joueurs
+                <Users width={13} height={13} /> {p.players}
               </dt>
               <dd className="mt-2 text-2xl font-bold tabular-nums tracking-tight">
                 {online}
@@ -89,7 +95,7 @@ export default function PanelPage() {
             </div>
             <div>
               <dt className="label flex items-center gap-1.5 text-muted">
-                <Discord width={13} height={13} /> Discord
+                <Discord width={13} height={13} /> {p.discord}
               </dt>
               <dd className="mt-2 text-2xl font-bold tabular-nums tracking-tight">{discordMembers}</dd>
             </div>
@@ -97,18 +103,18 @@ export default function PanelPage() {
         </div>
 
         {/* Onglets */}
-        <nav className="container-x relative -mb-px" aria-label="Sections du panel">
+        <nav className="container-x relative -mb-px" aria-label={p.tabsAria}>
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-ink to-transparent lg:hidden" />
           <ul className="flex gap-6 overflow-x-auto whitespace-nowrap scrollbar-none">
-            {tabs.map((t) => (
-              <li key={t}>
+            {tabs.map((key) => (
+              <li key={key}>
                 <button
                   type="button"
-                  onClick={() => setTab(t)}
-                  aria-current={tab === t ? "page" : undefined}
-                  className={cn("label border-b-2 py-4 transition-colors", tab === t ? "border-white text-white" : "border-transparent text-muted hover:text-white")}
+                  onClick={() => setTab(key)}
+                  aria-current={tab === key ? "page" : undefined}
+                  className={cn("label border-b-2 py-4 transition-colors", tab === key ? "border-white text-white" : "border-transparent text-muted hover:text-white")}
                 >
-                  {t}
+                  {p.tabs[key]}
                 </button>
               </li>
             ))}
@@ -120,18 +126,18 @@ export default function PanelPage() {
         <div className="container-x pt-6">
           <div className="flex flex-col gap-3 rounded-card border border-white/30 bg-ink-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm">
-              <span className="font-semibold">Il te reste {remaining} étape{remaining > 1 ? "s" : ""}</span>
-              <span className="text-muted"> pour mettre ton serveur en ligne : clé de serveur, Discord, connexion au jeu.</span>
+              <span className="font-semibold">{remaining === 1 ? p.banner.remainingOne : fmt(p.banner.remainingMany, { n: remaining })}</span>
+              <span className="text-muted"> {p.banner.text}</span>
             </p>
             <Link href="/creer/mise-en-ligne" className="label whitespace-nowrap underline underline-offset-4">
-              Reprendre le guide
+              {p.banner.resume}
             </Link>
           </div>
         </div>
       )}
       <main className="container-x grid gap-6 py-8 lg:grid-cols-12">
         <div className="lg:col-span-7 xl:col-span-8">
-          <PanelTabContent key={tab} tab={tab} spec={spec} history={history} online={online} discordMembers={discordMembers} onLog={log} />
+          <PanelTabContent key={`${tab}-${locale}`} tab={tab} spec={spec} history={history} online={online} discordMembers={discordMembers} onLog={log} />
         </div>
         <div className="lg:col-span-5 xl:col-span-4">
           <PanelChat onPublished={onPublished} />
@@ -142,23 +148,23 @@ export default function PanelPage() {
         <p>
           {isDemo ? (
             <>
-              Tu explores un panel de démonstration.{" "}
+              {p.footer.demo}{" "}
               <Link href="/creer" className="link-inline">
-                Crée ton propre serveur
+                {p.footer.demoLink}
               </Link>
               .
             </>
           ) : (
             <>
-              Serveur créé avec ServCraft.{" "}
+              {p.footer.created}{" "}
               <Link href="/creer" onClick={newServer} className="link-inline">
-                Créer un autre serveur
+                {p.footer.another}
               </Link>
               .
             </>
           )}
         </p>
-        <p>Non affilié à Rockstar Games, Take-Two ou Cfx.re.</p>
+        <p>{t.footer.disclaimer}</p>
       </footer>
     </div>
   );

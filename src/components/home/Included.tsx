@@ -1,33 +1,40 @@
+"use client";
+
+import { useT } from "@/lib/i18n/client";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { ImageKey } from "@/lib/data/images";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
-const included: Array<{ image: ImageKey; label: string; title: string; href: string }> = [
-  { image: "featureServer", label: "Infrastructure", title: "Serveur de jeu", href: "/fonctionnalites/serveur-de-jeu" },
-  { image: "includedProtection", label: "Priorité numéro un", title: "Protection anti-attaques", href: "/fonctionnalites/protection-anti-attaques" },
-  { image: "featureJobs", label: "Gameplay", title: "Jobs : police, EMS, mécano", href: "/fonctionnalites/jobs-et-factions" },
-  { image: "featureEconomy", label: "Gameplay", title: "Économie", href: "/fonctionnalites/economie" },
-  { image: "includedGangs", label: "Gameplay", title: "Gangs", href: "/fonctionnalites/jobs-et-factions" },
-  { image: "includedHousing", label: "Gameplay", title: "Immobilier", href: "/fonctionnalites/economie" },
-  { image: "includedHeists", label: "Gameplay", title: "Braquages", href: "/fonctionnalites/ia-de-gestion" },
-  { image: "featureDiscord", label: "Communauté", title: "Discord complet généré automatiquement", href: "/fonctionnalites/discord-automatique" },
-  { image: "featureSite", label: "Présence", title: "Site web du serveur", href: "/fonctionnalites/site-web" },
-  { image: "includedBackups", label: "Sérénité", title: "Sauvegardes", href: "/fonctionnalites/serveur-de-jeu" },
-  { image: "includedRepair", label: "Sérénité", title: "Réparation automatique des erreurs", href: "/fonctionnalites/ia-de-gestion" },
+type IncludedKey = keyof Dictionary["included"]["items"];
+
+const included: Array<{ key: IncludedKey; image: ImageKey; href: string }> = [
+  { key: "server", image: "featureServer", href: "/fonctionnalites/serveur-de-jeu" },
+  { key: "protection", image: "includedProtection", href: "/fonctionnalites/protection-anti-attaques" },
+  { key: "jobs", image: "featureJobs", href: "/fonctionnalites/jobs-et-factions" },
+  { key: "economy", image: "featureEconomy", href: "/fonctionnalites/economie" },
+  { key: "gangs", image: "includedGangs", href: "/fonctionnalites/jobs-et-factions" },
+  { key: "housing", image: "includedHousing", href: "/fonctionnalites/economie" },
+  { key: "heists", image: "includedHeists", href: "/fonctionnalites/ia-de-gestion" },
+  { key: "discord", image: "featureDiscord", href: "/fonctionnalites/discord-automatique" },
+  { key: "site", image: "featureSite", href: "/fonctionnalites/site-web" },
+  { key: "backups", image: "includedBackups", href: "/fonctionnalites/serveur-de-jeu" },
+  { key: "repair", image: "includedRepair", href: "/fonctionnalites/ia-de-gestion" },
 ];
 
 export function Included() {
+  const t = useT();
   return (
     <section className="border-t border-line bg-ink" id="inclus">
       <div className="container-x py-24 sm:py-32">
         <Reveal>
-          <SectionHeading tag="Ce qui est inclus" title="Tout ce qu'il faut pour une vraie ville." text="Pas une base vide à remplir : un serveur complet, cohérent avec ta description, prêt à accueillir des joueurs." />
+          <SectionHeading tag={t.included.tag} title={t.included.title} text={t.included.text} />
         </Reveal>
         <div className="mt-16 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4 lg:gap-y-12">
           {included.map((item, i) => (
-            <Reveal key={item.title} delay={(i % 4) * 0.06}>
-              <ImageCard {...item} ratio="4/3" />
+            <Reveal key={item.key} delay={(i % 4) * 0.06}>
+              <ImageCard image={item.image} href={item.href} label={t.included.items[item.key].label} title={t.included.items[item.key].title} ratio="4/3" />
             </Reveal>
           ))}
         </div>

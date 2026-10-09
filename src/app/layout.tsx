@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter_Tight } from "next/font/google";
 import "./globals.css";
 import { WizardProvider } from "@/lib/wizard-store";
+import { LocaleProvider } from "@/lib/i18n/client";
+import { getI18n } from "@/lib/i18n/server";
 import { Cursor } from "@/components/ui/Cursor";
 
 const sans = Inter_Tight({
@@ -10,22 +12,17 @@ const sans = Inter_Tight({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "ServCraft — Décris ton serveur. L'IA le construit.",
-    template: "%s — ServCraft",
-  },
-  description:
-    "ServCraft crée ton serveur GTA V RP de A à Z grâce à l'IA. Décris-le en une phrase, on le construit, on le met en ligne et tu le gères depuis un panel.",
-  metadataBase: new URL("https://servcraft.example"),
-  openGraph: {
-    title: "ServCraft — Décris ton serveur. L'IA le construit.",
-    description:
-      "Lance un serveur GTA V RP complet sans aucune compétence technique.",
-    type: "website",
-    locale: "fr_FR",
-  },
-};
+const ogLocales = { fr: "fr_FR", en: "en_US", es: "es_ES", de: "de_DE" } as const;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getI18n();
+  return {
+    title: { default: t.meta.title, template: "%s — ServCraft" },
+    description: t.meta.description,
+    metadataBase: new URL("https://servcraft.example"),
+    openGraph: { title: t.meta.title, description: t.meta.ogDescription, type: "website", locale: ogLocales[locale] },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#0a0a0a",
@@ -33,14 +30,17 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const { locale, t } = await getI18n();
   return (
-    <html lang="fr" className={`${sans.variable} h-full antialiased`}>
+    <html lang={locale} className={`${sans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-ink text-white">
-        <WizardProvider>
-          {children}
-          <Cursor />
-        </WizardProvider>
+        <LocaleProvider locale={locale} dictionary={t}>
+          <WizardProvider>
+            {children}
+            <Cursor />
+          </WizardProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

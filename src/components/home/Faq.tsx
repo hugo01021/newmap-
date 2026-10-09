@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/cn";
-import { faq } from "@/lib/data/faq";
+import { useT } from "@/lib/i18n/client";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
 export function Faq() {
+  const t = useT();
   const [open, setOpen] = useState<number | null>(0);
   return (
     <section className="border-t border-line bg-ink" id="faq">
@@ -15,13 +16,13 @@ export function Faq() {
         <div className="grid gap-12 lg:grid-cols-12">
           <div className="lg:col-span-4">
             <Reveal>
-              <SectionHeading tag="FAQ" title="Les questions qu'on nous pose." />
+              <SectionHeading tag={t.faq.tag} title={t.faq.title} />
             </Reveal>
           </div>
           <div className="lg:col-span-8">
             <Reveal delay={0.1}>
               <ul className="divide-y divide-line border-y border-line">
-                {faq.map((item, i) => {
+                {t.faq.items.map((item, i) => {
                   const isOpen = open === i;
                   return (
                     <li key={item.q}>

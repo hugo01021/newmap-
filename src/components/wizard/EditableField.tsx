@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import { fmt } from "@/lib/i18n/config";
+import { useT } from "@/lib/i18n/client";
 import { Check, Pencil } from "@/components/ui/Icons";
 
 interface EditableTextProps {
@@ -13,6 +15,7 @@ interface EditableTextProps {
 
 /** Valeur affichée, modifiable au clic sur le crayon. */
 export function EditableText({ label, value, onChange, large }: EditableTextProps) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
 
@@ -50,7 +53,7 @@ export function EditableText({ label, value, onChange, large }: EditableTextProp
       <button
         type="button"
         onClick={() => (editing ? commit() : (setDraft(value), setEditing(true)))}
-        aria-label={editing ? `Valider ${label}` : `Modifier ${label}`}
+        aria-label={editing ? fmt(t.recap.validate, { label }) : fmt(t.recap.edit, { label })}
         className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line text-muted transition-colors hover:border-white/50 hover:text-white"
       >
         {editing ? <Check width={14} height={14} /> : <Pencil width={14} height={14} />}
@@ -99,7 +102,8 @@ interface TagListProps {
 }
 
 /** Liste de valeurs (jobs, gangs, options) avec ajout et suppression. */
-export function TagList({ label, items, onChange, placeholder = "Ajouter…" }: TagListProps) {
+export function TagList({ label, items, onChange, placeholder }: TagListProps) {
+  const t = useT();
   const [draft, setDraft] = useState("");
   const add = () => {
     const v = draft.trim();
@@ -116,7 +120,7 @@ export function TagList({ label, items, onChange, placeholder = "Ajouter…" }: 
             <button
               type="button"
               onClick={() => onChange(items.filter((x) => x !== it))}
-              aria-label={`Retirer ${it}`}
+              aria-label={fmt(t.recap.remove, { item: it })}
               className="flex h-5 w-5 items-center justify-center rounded-full text-muted transition-colors hover:bg-white hover:text-ink"
             >
               ×
@@ -129,7 +133,7 @@ export function TagList({ label, items, onChange, placeholder = "Ajouter…" }: 
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), add())}
           onBlur={add}
           placeholder={placeholder}
-          aria-label={`Ajouter à ${label}`}
+          aria-label={fmt(t.recap.addTo, { label })}
           className="h-8 min-w-28 flex-1 rounded-full border border-dashed border-line bg-transparent px-3.5 text-sm text-white placeholder:text-muted-2 focus:border-white/50 focus:outline-none"
         />
       </div>

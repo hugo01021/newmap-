@@ -3,7 +3,7 @@
  * À brancher sur le vrai moteur : écouter un flux d'événements (SSE ou WebSocket)
  * et appeler onStep à chaque étape terminée.
  */
-import { buildSteps } from "../data/build-steps";
+import { buildStepTimings } from "../data/build-steps";
 import type { ServerSpec } from "../types";
 
 export interface DeployResult {
@@ -32,12 +32,10 @@ function hash(s: string) {
  * Enregistre la clé de serveur Cfx.re du client (simulé).
  * À brancher : vérification côté serveur puis écriture dans la configuration du serveur.
  */
-export async function registerLicenseKey(key: string): Promise<{ ok: boolean; reason?: string }> {
+export async function registerLicenseKey(key: string): Promise<{ ok: true } | { ok: false; reason: "invalidFormat" }> {
   await new Promise((r) => setTimeout(r, 900));
   const trimmed = key.trim();
-  if (!/^cfxk_[A-Za-z0-9]{8,}(_[A-Za-z0-9]+)?$/.test(trimmed)) {
-    return { ok: false, reason: "Cette clé ne ressemble pas à une clé de serveur. Elle commence par « cfxk_ » suivi de lettres et de chiffres." };
-  }
+  if (!/^cfxk_[A-Za-z0-9]{8,}(_[A-Za-z0-9]+)?$/.test(trimmed)) return { ok: false, reason: "invalidFormat" };
   return { ok: true };
 }
 
@@ -52,7 +50,7 @@ export function runDeployment(
 
   const next = () => {
     if (cancelled) return;
-    if (i >= buildSteps.length) {
+    if (i >= buildStepTimings.length) {
       const slug = slugify(spec.name);
       onDone({
         address: `connect ${slug}.servcraft.gg`,
@@ -66,7 +64,7 @@ export function runDeployment(
       onStep(i);
       i += 1;
       next();
-    }, buildSteps[i].duration);
+    }, buildStepTimings[i].duration);
   };
   next();
 

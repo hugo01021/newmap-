@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { buildSteps, totalBuildDuration } from "@/lib/data/build-steps";
+import { localizedBuildSteps, totalBuildDuration } from "@/lib/data/build-steps";
+import { useT } from "@/lib/i18n/client";
 import { runDeployment } from "@/lib/services/deploy";
 import { useWizard } from "@/lib/wizard-store";
 import { BuildList } from "@/components/ui/BuildList";
@@ -11,9 +12,9 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Tag } from "@/components/ui/Tag";
 import { Logo } from "@/components/layout/Logo";
 
-const items = buildSteps.map((s) => ({ id: s.id, label: s.label, detail: s.detail }));
-
 export default function ConstructionPage() {
+  const t = useT();
+  const items = localizedBuildSteps(t);
   const router = useRouter();
   const { state, hydrated, setServer } = useWizard();
   const [completed, setCompleted] = useState(0);
@@ -68,32 +69,32 @@ export default function ConstructionPage() {
     };
   }, []);
 
-  const currentStep = buildSteps[Math.min(completed, buildSteps.length - 1)];
+  const currentStep = items[Math.min(completed, items.length - 1)];
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-ink">
-      <ProgressBar value={progress} height={3} className="fixed inset-x-0 top-0 z-50" label="Construction du serveur" />
+      <ProgressBar value={progress} height={3} className="fixed inset-x-0 top-0 z-50" label={t.construction.aria} />
       <header className="container-x flex h-16 items-center justify-between sm:h-[72px]">
         <Logo href="/creer/construction" />
-        <span className="label text-muted">Étape 5/7 · Construction</span>
+        <span className="label text-muted">{t.construction.label}</span>
       </header>
 
       <main className="container-x grid flex-1 items-center gap-12 pb-16 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-            <Tag>{done ? "Terminé" : "En cours"}</Tag>
+            <Tag>{done ? t.construction.done : t.construction.inProgress}</Tag>
             <h1 className="display mt-6 text-4xl sm:text-6xl">
               {done ? (
                 <>
-                  Serveur
+                  {t.construction.readyLine1}
                   <br />
-                  prêt.
+                  {t.construction.readyLine2}
                 </>
               ) : (
                 <>
-                  L&apos;IA construit
+                  {t.construction.building}
                   <br />
-                  {state.spec?.name ?? "ton serveur"}.
+                  {state.spec?.name ?? t.construction.fallbackName}.
                 </>
               )}
             </h1>
@@ -109,12 +110,10 @@ export default function ConstructionPage() {
                 exit={{ opacity: 0, y: -6 }}
                 className="mt-4 text-muted"
               >
-                {done ? "Redirection vers ton serveur…" : `${currentStep.label} · ${currentStep.detail}`}
+                {done ? t.construction.redirect : `${currentStep.label} · ${currentStep.detail}`}
               </motion.p>
             </AnimatePresence>
-            <p className="mt-10 max-w-sm text-sm leading-relaxed text-muted-2">
-              Tu peux rester sur cette page. Une fois la construction terminée, tu recevras l&apos;adresse de connexion et l&apos;invitation Discord.
-            </p>
+            <p className="mt-10 max-w-sm text-sm leading-relaxed text-muted-2">{t.construction.stay}</p>
           </motion.div>
         </div>
 

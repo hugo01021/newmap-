@@ -1,18 +1,21 @@
 import { SiteShell } from "@/components/layout/SiteShell";
 import { PillButton } from "@/components/ui/PillButton";
 import { Tag } from "@/components/ui/Tag";
+import { getI18n } from "@/lib/i18n/server";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const { t } = await getI18n();
+  const page = t.pages.notFound;
   return (
     <SiteShell finalCta={false}>
       <section className="container-x flex min-h-[60vh] flex-col items-start justify-center py-24">
-        <Tag>Erreur 404</Tag>
-        <h1 className="display mt-6 text-5xl sm:text-7xl">Cette rue n&apos;existe pas.</h1>
-        <p className="mt-6 max-w-md text-muted">La page que tu cherches a déménagé ou n&apos;a jamais été construite.</p>
+        <Tag>{page.tag}</Tag>
+        <h1 className="display mt-6 text-5xl sm:text-7xl">{page.title}</h1>
+        <p className="mt-6 max-w-md text-muted">{page.text}</p>
         <div className="mt-8 flex gap-3">
-          <PillButton href="/">Retour à l&apos;accueil</PillButton>
+          <PillButton href="/">{page.home}</PillButton>
           <PillButton href="/creer" variant="secondary">
-            Créer mon serveur
+            {t.common.create}
           </PillButton>
         </div>
       </section>

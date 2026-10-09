@@ -4,9 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { steps, stepForPath } from "@/lib/steps";
+import { fmt } from "@/lib/i18n/config";
+import { useT } from "@/lib/i18n/client";
 import { Logo } from "@/components/layout/Logo";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { ArrowLeft, X } from "@/components/ui/Icons";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
 interface WizardShellProps {
   children: React.ReactNode;
@@ -16,6 +19,7 @@ interface WizardShellProps {
 
 /** Enveloppe des étapes : barre de progression fine en haut + en-tête minimal. */
 export function WizardShell({ children, locked }: WizardShellProps) {
+  const t = useT();
   const pathname = usePathname();
   const current = stepForPath(pathname);
   const index = current?.index ?? 1;
@@ -26,7 +30,7 @@ export function WizardShell({ children, locked }: WizardShellProps) {
 
   return (
     <div className="flex min-h-svh flex-col bg-ink">
-      <ProgressBar value={index / total} className="fixed inset-x-0 top-0 z-50" label={`Étape ${index} sur ${total}`} />
+      <ProgressBar value={index / total} className="fixed inset-x-0 top-0 z-50" label={fmt(t.shell.progress, { i: index, n: total })} />
 
       <header className="container-x flex h-16 items-center justify-between sm:h-[72px]">
         <div className="flex items-center gap-6">
@@ -34,20 +38,21 @@ export function WizardShell({ children, locked }: WizardShellProps) {
           <span className="hidden items-center gap-3 text-sm text-muted sm:flex">
             <span className="h-4 w-px bg-line-2" />
             <span className="label">
-              Étape {index}/{total}
+              {t.shell.step} {index}/{total}
             </span>
-            <span className="font-medium text-white">{current?.label}</span>
+            <span className="font-medium text-white">{t.steps[index - 1].label}</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
           {!locked && previous && (
             <Link href={previous.path} className="label flex h-10 items-center gap-2 rounded-full px-4 text-white/80 transition-colors hover:bg-white/5">
               <ArrowLeft width={14} height={14} />
-              <span className="hidden sm:inline">Retour</span>
+              <span className="hidden sm:inline">{t.common.back}</span>
             </Link>
           )}
+          <LanguageSwitcher className="px-2" />
           {!locked && (
-            <Link href="/" aria-label="Quitter et revenir à l'accueil" className="flex h-10 w-10 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/5">
+            <Link href="/" aria-label={t.shell.quit} className="flex h-10 w-10 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/5">
               <X width={16} height={16} />
             </Link>
           )}
@@ -64,10 +69,10 @@ export function WizardShell({ children, locked }: WizardShellProps) {
               <li key={s.path} className="flex items-center gap-2">
                 {s.index < index ? (
                   <Link href={s.path} className="label text-white/60 transition-opacity hover:opacity-100">
-                    {s.short}
+                    {t.steps[s.index - 1].short}
                   </Link>
                 ) : (
-                  <span className={cn("label", s.index === index ? "text-white" : "")}>{s.short}</span>
+                  <span className={cn("label", s.index === index ? "text-white" : "")}>{t.steps[s.index - 1].short}</span>
                 )}
                 {s.index < total && <span className="h-px w-4 bg-line" />}
               </li>
