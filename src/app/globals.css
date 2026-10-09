@@ -37,7 +37,7 @@ body {
   color: #0a0a0a;
 }
 
-/* Custom cursor: hide the native one only on precise pointers */
+/* Curseur personnalisé : on masque la flèche native seulement avec une vraie souris */
 @media (pointer: fine) {
   html.has-cursor,
   html.has-cursor * {
