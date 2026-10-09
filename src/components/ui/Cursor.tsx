@@ -20,8 +20,8 @@ const corner = { position: "absolute", width: 9, height: 9, borderColor: "#fff",
 
 /**
  * Curseur personnalisé (ordinateur uniquement) : un réticule fin.
- * Au repos, une petite croix ; sur un lien ou un bouton, quatre coins qui s'écartent
- * pour encadrer la cible ; dans un champ de texte, une barre verticale.
+ * Une petite croix, toujours visible ; sur un lien ou un bouton, quatre coins s'écartent
+ * autour d'elle pour encadrer la cible ; dans un champ de texte, une barre verticale.
  */
 export function Cursor() {
   const enabled = useSyncExternalStore(subscribe, getFine, getServerFine);
@@ -79,11 +79,11 @@ export function Cursor() {
   return (
     <motion.div aria-hidden className="pointer-events-none fixed left-0 top-0 z-[9999] mix-blend-difference" style={{ x: sx, y: sy }}>
       <motion.div animate={{ scale: down ? 0.78 : 1, opacity: hidden ? 0 : 1 }} transition={spring} className="relative">
-        {/* Croix fine (repos) / barre verticale (texte) */}
-        <motion.span style={{ ...line, width: 1, left: -0.5 }} animate={{ top: -(gap + v), height: v, opacity: link ? 0 : 1 }} transition={spring} />
-        <motion.span style={{ ...line, width: 1, left: -0.5 }} animate={{ top: gap, height: v, opacity: link ? 0 : 1 }} transition={spring} />
-        <motion.span style={{ ...line, height: 1, top: -0.5 }} animate={{ left: -(gap + v), width: v, opacity: link || text ? 0 : 1 }} transition={spring} />
-        <motion.span style={{ ...line, height: 1, top: -0.5 }} animate={{ left: gap, width: v, opacity: link || text ? 0 : 1 }} transition={spring} />
+        {/* Croix fine, toujours visible / barre verticale (texte) */}
+        <motion.span style={{ ...line, width: 1, left: -0.5 }} animate={{ top: -(gap + v), height: v }} transition={spring} />
+        <motion.span style={{ ...line, width: 1, left: -0.5 }} animate={{ top: gap, height: v }} transition={spring} />
+        <motion.span style={{ ...line, height: 1, top: -0.5 }} animate={{ left: -(gap + v), width: v, opacity: text ? 0 : 1 }} transition={spring} />
+        <motion.span style={{ ...line, height: 1, top: -0.5 }} animate={{ left: gap, width: v, opacity: text ? 0 : 1 }} transition={spring} />
 
         {/* Quatre coins qui encadrent la cible (lien, bouton) */}
         <motion.span style={{ ...corner, borderTopWidth: 1.5, borderLeftWidth: 1.5, borderTopLeftRadius: 3 }} animate={{ left: -d, top: -d, opacity: link ? 1 : 0 }} transition={spring} />
