@@ -3,14 +3,14 @@ import type { Metadata } from "next";
 import { AuthPanel } from "@/components/auth/AuthPanel";
 
 export const metadata: Metadata = {
-  title: "Connexion",
-  description: "Connecte-toi pour retrouver ton serveur et ouvrir ton panel.",
+  title: "Inscription",
+  description: "Crée ton compte ServCraft en trente secondes, puis décris ton serveur.",
 };
 
-export default function ConnexionPage() {
+export default function InscriptionPage() {
   return (
     <Suspense fallback={null}>
-      <AuthPanel mode="connexion" />
+      <AuthPanel mode="inscription" />
     </Suspense>
   );
 }

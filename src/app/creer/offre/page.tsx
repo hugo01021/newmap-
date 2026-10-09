@@ -7,26 +7,24 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { plans, formatEuro } from "@/lib/data/pricing";
 import { useWizard } from "@/lib/wizard-store";
-import { signInWithDiscord, signInWithEmail } from "@/lib/services/auth";
 import { checkout } from "@/lib/services/payments";
 import type { PlanId } from "@/lib/types";
 import { StepHeading } from "@/components/wizard/StepHeading";
 import { PlanCard } from "@/components/home/Pricing";
 import { PillButton } from "@/components/ui/PillButton";
 import { Input, FieldLabel } from "@/components/ui/Field";
-import { ArrowRight, Check, Discord, Loader, Mail, Shield } from "@/components/ui/Icons";
+import { ArrowRight, Check, Loader, Shield } from "@/components/ui/Icons";
 
-type Phase = "plan" | "account" | "payment";
+type Phase = "plan" | "payment";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "1";
 
 export default function OffrePage() {
   const router = useRouter();
-  const { state, hydrated, setPlan, setAccount, setPaid } = useWizard();
-  const [phaseOverride, setPhase] = useState<Phase | null>(null);
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState<null | "email" | "discord" | "pay">(null);
+  const { state, hydrated, setPlan, setPaid } = useWizard();
+  const [phase, setPhase] = useState<Phase>("plan");
+  const [busy, setBusy] = useState<null | "pay">(null);
   const [card, setCard] = useState({ number: "", exp: "", cvc: "", name: "" });
   const [payError, setPayError] = useState<string | null>(null);
 
@@ -39,31 +37,11 @@ export default function OffrePage() {
     if (state.paid) router.replace("/creer/construction");
   }, [hydrated, state.spec, state.prompt, state.paid, router]);
 
-  // Sous-étape dérivée du parcours sauvegardé, sauf si l'utilisateur navigue manuellement.
-  const phase: Phase = phaseOverride ?? (state.plan && state.account ? "payment" : state.plan ? "account" : "plan");
-
   const plan = plans.find((p) => p.id === state.plan) ?? null;
 
   const choosePlan = (id: PlanId) => {
     setPlan(id);
-    setTimeout(() => setPhase(state.account ? "payment" : "account"), 200);
-  };
-
-  const loginEmail = async () => {
-    if (!/^\S+@\S+\.\S+$/.test(email)) return;
-    setBusy("email");
-    const account = await signInWithEmail(email);
-    setAccount(account);
-    setBusy(null);
-    setPhase("payment");
-  };
-
-  const loginDiscord = async () => {
-    setBusy("discord");
-    const account = await signInWithDiscord();
-    setAccount(account);
-    setBusy(null);
-    setPhase("payment");
+    setTimeout(() => setPhase("payment"), 200);
   };
 
   /** Paiement simulé (sans clé Stripe). */
@@ -103,24 +81,21 @@ export default function OffrePage() {
 
   const phases: Array<{ id: Phase; label: string }> = [
     { id: "plan", label: "Offre" },
-    { id: "account", label: "Compte" },
     { id: "payment", label: "Paiement" },
   ];
   const phaseIndex = phases.findIndex((p) => p.id === phase);
 
-  if (!hydrated || !state.spec) return null;
+  if (!hydrated || !state.spec || !state.account) return null;
 
   return (
     <div className="flex flex-1 flex-col items-center">
       <StepHeading
         tag="Étape 4"
-        title={phase === "plan" ? "Choisis ton offre." : phase === "account" ? "Crée ton compte." : "Dernière étape."}
+        title={phase === "plan" ? "Choisis ton offre." : "Dernière étape."}
         text={
           phase === "plan"
             ? `Pour ${state.spec.name} : ${state.spec.players} joueurs, économie ${state.spec.economy === "realiste" ? "réaliste" : state.spec.economy}. Tu pourras changer d'offre plus tard.`
-            : phase === "account"
-              ? "Pour retrouver ton serveur et ton panel. Trente secondes."
-              : "Paiement sécurisé. La construction démarre immédiatement après."
+            : "Paiement sécurisé. La construction démarre immédiatement après."
         }
       />
 
@@ -159,7 +134,7 @@ export default function OffrePage() {
               </div>
               {state.plan && (
                 <div className="mt-8 flex justify-end">
-                  <PillButton onClick={() => setPhase(state.account ? "payment" : "account")} iconRight={<ArrowRight width={16} height={16} />}>
+                  <PillButton onClick={() => setPhase("payment")} iconRight={<ArrowRight width={16} height={16} />}>
                     Continuer avec {plan?.name}
                   </PillButton>
                 </div>
@@ -167,48 +142,7 @@ export default function OffrePage() {
             </motion.div>
           )}
 
-          {phase === "account" && (
-            <motion.div key="account" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.45, ease }} className="mx-auto max-w-md">
-              <div className="rounded-card border border-line bg-ink-2/60 p-6 sm:p-8">
-                <PillButton variant="secondary" className="w-full" onClick={loginDiscord} disabled={busy !== null} icon={busy === "discord" ? <Loader width={16} height={16} /> : <Discord width={18} height={18} />}>
-                  Continuer avec Discord
-                </PillButton>
-                <div className="my-6 flex items-center gap-4 text-xs text-muted-2">
-                  <span className="h-px flex-1 bg-line" />
-                  ou par e-mail
-                  <span className="h-px flex-1 bg-line" />
-                </div>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    loginEmail();
-                  }}
-                  className="space-y-3"
-                >
-                  <label className="block">
-                    <FieldLabel className="mb-2">Adresse e-mail</FieldLabel>
-                    <Input type="email" required autoComplete="email" placeholder="toi@exemple.fr" value={email} onChange={(e) => setEmail(e.target.value)} />
-                  </label>
-                  <PillButton type="submit" className="w-full" disabled={busy !== null || !/^\S+@\S+\.\S+$/.test(email)} icon={busy === "email" ? <Loader width={16} height={16} /> : <Mail width={16} height={16} />}>
-                    Créer mon compte
-                  </PillButton>
-                </form>
-                <p className="mt-5 text-center text-xs leading-relaxed text-muted-2">
-                  En continuant, tu acceptes nos{" "}
-                  <Link href="/legal/cgv" className="link-inline">
-                    conditions
-                  </Link>{" "}
-                  et notre{" "}
-                  <Link href="/legal/confidentialite" className="link-inline">
-                    politique de confidentialité
-                  </Link>
-                  .
-                </p>
-              </div>
-            </motion.div>
-          )}
-
-          {phase === "payment" && plan && state.account && (
+          {phase === "payment" && plan && (
             <motion.div key="payment" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.45, ease }} className="grid gap-6 lg:grid-cols-5">
               <div className="rounded-card border border-line bg-ink-2/60 p-6 sm:p-8 lg:col-span-3">
                 <div className="flex items-center justify-between">
@@ -229,44 +163,44 @@ export default function OffrePage() {
                     <p className="mt-4 text-center text-xs text-muted-2">Abonnement mensuel, résiliable à tout moment depuis le panel.</p>
                   </div>
                 ) : (
-                <>
-                <form
-                  className="mt-6 space-y-4"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    pay();
-                  }}
-                >
-                  <label className="block">
-                    <FieldLabel className="mb-2">Nom sur la carte</FieldLabel>
-                    <Input autoComplete="cc-name" placeholder="Prénom Nom" value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} />
-                  </label>
-                  <label className="block">
-                    <FieldLabel className="mb-2">Numéro de carte</FieldLabel>
-                    <Input
-                      inputMode="numeric"
-                      autoComplete="cc-number"
-                      placeholder="4242 4242 4242 4242"
-                      value={card.number}
-                      onChange={(e) => setCard({ ...card, number: e.target.value.replace(/[^\d]/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ") })}
-                    />
-                  </label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <label className="block">
-                      <FieldLabel className="mb-2">Expiration</FieldLabel>
-                      <Input inputMode="numeric" autoComplete="cc-exp" placeholder="MM/AA" value={card.exp} onChange={(e) => setCard({ ...card, exp: e.target.value.replace(/[^\d]/g, "").slice(0, 4).replace(/(\d{2})(?=\d)/, "$1/") })} />
-                    </label>
-                    <label className="block">
-                      <FieldLabel className="mb-2">Code</FieldLabel>
-                      <Input inputMode="numeric" autoComplete="cc-csc" placeholder="123" value={card.cvc} onChange={(e) => setCard({ ...card, cvc: e.target.value.replace(/[^\d]/g, "").slice(0, 4) })} />
-                    </label>
-                  </div>
-                  <PillButton type="submit" size="lg" className="mt-2 w-full" disabled={!cardReady || busy !== null} icon={busy === "pay" ? <Loader width={16} height={16} /> : undefined}>
-                    {busy === "pay" ? "Paiement en cours…" : `Payer ${formatEuro(plan.monthly)} et construire`}
-                  </PillButton>
-                </form>
-                <p className="mt-4 text-center text-xs text-muted-2">Démonstration : aucun paiement réel n&apos;est effectué.</p>
-                </>
+                  <>
+                    <form
+                      className="mt-6 space-y-4"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        pay();
+                      }}
+                    >
+                      <label className="block">
+                        <FieldLabel className="mb-2">Nom sur la carte</FieldLabel>
+                        <Input autoComplete="cc-name" placeholder="Prénom Nom" value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} />
+                      </label>
+                      <label className="block">
+                        <FieldLabel className="mb-2">Numéro de carte</FieldLabel>
+                        <Input
+                          inputMode="numeric"
+                          autoComplete="cc-number"
+                          placeholder="4242 4242 4242 4242"
+                          value={card.number}
+                          onChange={(e) => setCard({ ...card, number: e.target.value.replace(/[^\d]/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ") })}
+                        />
+                      </label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <label className="block">
+                          <FieldLabel className="mb-2">Expiration</FieldLabel>
+                          <Input inputMode="numeric" autoComplete="cc-exp" placeholder="MM/AA" value={card.exp} onChange={(e) => setCard({ ...card, exp: e.target.value.replace(/[^\d]/g, "").slice(0, 4).replace(/(\d{2})(?=\d)/, "$1/") })} />
+                        </label>
+                        <label className="block">
+                          <FieldLabel className="mb-2">Code</FieldLabel>
+                          <Input inputMode="numeric" autoComplete="cc-csc" placeholder="123" value={card.cvc} onChange={(e) => setCard({ ...card, cvc: e.target.value.replace(/[^\d]/g, "").slice(0, 4) })} />
+                        </label>
+                      </div>
+                      <PillButton type="submit" size="lg" className="mt-2 w-full" disabled={!cardReady || busy !== null} icon={busy === "pay" ? <Loader width={16} height={16} /> : undefined}>
+                        {busy === "pay" ? "Paiement en cours…" : `Payer ${formatEuro(plan.monthly)} et construire`}
+                      </PillButton>
+                    </form>
+                    <p className="mt-4 text-center text-xs text-muted-2">Démonstration : aucun paiement réel n&apos;est effectué.</p>
+                  </>
                 )}
               </div>
 
@@ -293,9 +227,9 @@ export default function OffrePage() {
                   <p className="label text-muted">Compte</p>
                   <p className="mt-2 font-medium">{state.account.displayName}</p>
                   <p className="text-muted">{state.account.email}</p>
-                  <button type="button" onClick={() => (setAccount(null), setPhase("account"))} className="link-inline mt-2 text-xs hover:opacity-70">
+                  <Link href="/connexion?next=%2Fcreer%2Foffre" className="link-inline mt-2 inline-block text-xs hover:opacity-70">
                     Changer de compte
-                  </button>
+                  </Link>
                 </div>
                 <button type="button" onClick={() => setPhase("plan")} className="link-inline mt-4 block text-xs hover:opacity-70">
                   Changer d&apos;offre
